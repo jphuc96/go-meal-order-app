@@ -1,10 +1,8 @@
-package domain
+package menu
 
 import "time"
 
-// MenuInput ..
 type MenuInput struct {
-	ID              int
 	OwnerID         int
 	MenuName        string
 	Deadline        time.Time

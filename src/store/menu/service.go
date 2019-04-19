@@ -9,4 +9,6 @@ import (
 type Service interface {
 	CheckMenuExist(menuID int) (bool, error)
 	FindByID(mn *domain.MenuInput) (*models.Menu, error)
+	Create(p *domain.MenuInput) (*models.Menu, error)
+	FindByName(menuName string) (*models.Menu, error)
 }
