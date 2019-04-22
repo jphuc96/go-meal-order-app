@@ -14,7 +14,7 @@ var (
 	re = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 )
 
-func (s *Service) CreateUser(p *domain.UserInput) (*models.User, error) {
+func (s *Service) CreateUser(p *domain.CreateUserInput) (*models.User, error) {
 
 	if !(re.MatchString(p.Email)) {
 		return nil, errors.New(domain.InvalidEmailFormat)

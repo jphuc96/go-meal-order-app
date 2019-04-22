@@ -3,6 +3,7 @@ module git.d.foundation/datcom/backend
 go 1.12
 
 require (
+	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/gorilla/mux v1.7.1
 	github.com/k0kubun/pp v3.0.1+incompatible

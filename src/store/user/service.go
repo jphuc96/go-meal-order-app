@@ -6,7 +6,7 @@ import (
 )
 
 type Service interface {
-	Create(p *domain.UserInput) (*models.User, error)
-	Find(p *domain.UserInput) (*models.User, error)
+	Create(p *domain.CreateUserInput) (*models.User, error)
+	Find(p *domain.CreateUserInput) (*models.User, error)
 	FindAll() ([]*models.User, error)
 }

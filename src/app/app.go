@@ -15,7 +15,6 @@ import (
 // App struct for router and db
 type App struct {
 	Router  *mux.Router
-	Service *service.Service
 	Handler *handler.CoreHandler
 }
 
@@ -57,8 +56,8 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 }
 
 func (a *App) SetRouters() {
-	a.Router.HandleFunc("/auth/google/login-url", a.GetGoogleLoginURL).Methods("GET")
-	a.Router.HandleFunc("/auth/login/google", a.VerifyGoogleUserLogin).Methods("POST")
+	a.Router.HandleFunc("/auth/google/login-url", a.Handler.GetGoogleLoginURL).Methods("GET")
+	a.Router.HandleFunc("/auth/login/google", a.Handler.VerifyGoogleUserLogin).Methods("POST")
 	a.Router.HandleFunc("/menus", a.GetLatestMenu).Methods("GET")
 	a.Router.HandleFunc("/menus", a.CreateMenu).Methods("POST")
 	a.Router.HandleFunc("/menus/{MenuID}/time", a.ModifyMenuTime).Methods("POST")

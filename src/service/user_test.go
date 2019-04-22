@@ -96,7 +96,7 @@ func TestService_CreateUser(t *testing.T) {
 		User user.ServiceMock
 	}
 	type args struct {
-		p *domain.UserInput
+		p *domain.CreateUserInput
 	}
 	tests := []struct {
 		name    string
@@ -110,7 +110,7 @@ func TestService_CreateUser(t *testing.T) {
 			name: "Pass",
 			fields: fields{
 				user.ServiceMock{
-					CreateFunc: func(p *domain.UserInput) (*models.User, error) {
+					CreateFunc: func(p *domain.CreateUserInput) (*models.User, error) {
 						return &models.User{
 							ID:    100,
 							Name:  "Demo1",
@@ -118,13 +118,13 @@ func TestService_CreateUser(t *testing.T) {
 							Token: "ABCD",
 						}, nil
 					},
-					FindFunc: func(p *domain.UserInput) (*models.User, error) {
+					FindFunc: func(p *domain.CreateUserInput) (*models.User, error) {
 						return nil, nil
 					},
 				},
 			},
 			args: args{
-				&domain.UserInput{
+				&domain.CreateUserInput{
 					Name:  "Demo1",
 					Email: "Demo1@email.com",
 					Token: "ABCD",
@@ -142,10 +142,10 @@ func TestService_CreateUser(t *testing.T) {
 			name: "Duplicate",
 			fields: fields{
 				user.ServiceMock{
-					CreateFunc: func(p *domain.UserInput) (*models.User, error) {
+					CreateFunc: func(p *domain.CreateUserInput) (*models.User, error) {
 						return nil, nil
 					},
-					FindFunc: func(p *domain.UserInput) (*models.User, error) {
+					FindFunc: func(p *domain.CreateUserInput) (*models.User, error) {
 						return &models.User{
 							ID:    100,
 							Name:  "Demo2",
@@ -156,7 +156,7 @@ func TestService_CreateUser(t *testing.T) {
 				},
 			},
 			args: args{
-				&domain.UserInput{
+				&domain.CreateUserInput{
 					Name:  "Demo2",
 					Email: "Demo2@email.com",
 					Token: "ABCD",
@@ -169,16 +169,16 @@ func TestService_CreateUser(t *testing.T) {
 			name: "Find Error",
 			fields: fields{
 				user.ServiceMock{
-					CreateFunc: func(p *domain.UserInput) (*models.User, error) {
+					CreateFunc: func(p *domain.CreateUserInput) (*models.User, error) {
 						return nil, errors.New("Find errors")
 					},
-					FindFunc: func(p *domain.UserInput) (*models.User, error) {
+					FindFunc: func(p *domain.CreateUserInput) (*models.User, error) {
 						return nil, errors.New("Find errors")
 					},
 				},
 			},
 			args: args{
-				&domain.UserInput{
+				&domain.CreateUserInput{
 					Name:  "Demo3",
 					Email: "Demo3@gmail.com",
 					Token: "ABCD",
@@ -191,16 +191,16 @@ func TestService_CreateUser(t *testing.T) {
 			name: "Invalid email format",
 			fields: fields{
 				user.ServiceMock{
-					CreateFunc: func(p *domain.UserInput) (*models.User, error) {
+					CreateFunc: func(p *domain.CreateUserInput) (*models.User, error) {
 						return &models.User{}, nil
 					},
-					FindFunc: func(p *domain.UserInput) (*models.User, error) {
+					FindFunc: func(p *domain.CreateUserInput) (*models.User, error) {
 						return &models.User{}, nil
 					},
 				},
 			},
 			args: args{
-				&domain.UserInput{
+				&domain.CreateUserInput{
 					Name:  "Demo4",
 					Email: "Demo2invalidemail",
 					Token: "ABCD",
