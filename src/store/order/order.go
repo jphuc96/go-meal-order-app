@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strconv"
 
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
@@ -30,7 +32,7 @@ func (os *orderService) Add(o *domain.OrderInput) (*models.Order, error) {
 
 	err := order.Insert(context.Background(), os.db, boil.Infer())
 	if err != nil {
-		return nil, errors.New("Cannot insert")
+		return nil, fmt.Errorf("cannot insert item_id " + strconv.Itoa(order.ItemID))
 	}
 
 	return order, err
@@ -55,7 +57,23 @@ func (os *orderService) Exist(o *domain.OrderInput) (bool, error) {
 	return b, nil
 }
 
-func (os *orderService) Get(userID int) ([]*domain.Item, error) {
+func (os *orderService) Get(menuID string, userID string) ([]*domain.Item, error) {
+	b, err := models.Menus(qm.Where("id=?", menuID)).Exists(context.Background(), os.db)
+	if err != nil {
+		return nil, err
+	}
+	if b == false {
+		return nil, errors.New("menu does not exist")
+	}
+
+	b, err = models.Users(qm.Where("id=?", userID)).Exists(context.Background(), os.db)
+	if err != nil {
+		return nil, err
+	}
+	if b == false {
+		return nil, errors.New("user does not exist")
+	}
+
 	orders, err := models.Orders(qm.Where("user_id=?", userID)).All(context.Background(), os.db)
 	if err != nil {
 		return nil, err
@@ -65,7 +83,11 @@ func (os *orderService) Get(userID int) ([]*domain.Item, error) {
 	returnItems := make([]*domain.Item, len(orders))
 
 	for i, order := range orders {
-		items[i], err = models.Items(qm.Where("id=?", order.ItemID)).One(context.Background(), os.db)
+		items[i], err = models.Items(qm.Where("id=? AND menu_id=?", order.ItemID, menuID)).One(context.Background(), os.db)
+		if err != nil {
+			return nil, err
+		}
+
 		returnItems[i] = &domain.Item{
 			ID:       items[i].ID,
 			ItemName: items[i].ItemName,

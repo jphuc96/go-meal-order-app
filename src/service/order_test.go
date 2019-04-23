@@ -120,12 +120,13 @@ func TestService_DeleteOrder(t *testing.T) {
 	}
 }
 
-func TestService_GetOrdersByUserID(t *testing.T) {
+func TestService_GetOrdersByMenuAndUser(t *testing.T) {
 	type fields struct {
 		Order order.ServiceMock
 	}
 	type args struct {
-		userID int
+		menuID string
+		userID string
 	}
 	tests := []struct {
 		name    string
@@ -139,7 +140,7 @@ func TestService_GetOrdersByUserID(t *testing.T) {
 			name: "Test GetOrder() success",
 			fields: fields{
 				order.ServiceMock{
-					GetFunc: func(userID int) ([]*domain.Item, error) {
+					GetFunc: func(menuID string, userID string) ([]*domain.Item, error) {
 						return nil, nil
 					},
 				},
@@ -150,7 +151,7 @@ func TestService_GetOrdersByUserID(t *testing.T) {
 			name: "Test GetOrder() fail",
 			fields: fields{
 				order.ServiceMock{
-					GetFunc: func(userID int) ([]*domain.Item, error) {
+					GetFunc: func(menuID string, userID string) ([]*domain.Item, error) {
 						return nil, errors.New("failed")
 					},
 				},
@@ -165,13 +166,13 @@ func TestService_GetOrdersByUserID(t *testing.T) {
 					Order: &tt.fields.Order,
 				},
 			}
-			got, err := s.GetOrdersByUserID(tt.args.userID)
+			got, err := s.GetOrdersByMenuAndUser(tt.args.menuID, tt.args.userID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.GetOrdersByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Service.GetOrdersByMenuAndUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Service.GetOrdersByUserID() = %v, want %v", got, tt.want)
+				t.Errorf("Service.GetOrdersByMenuAndUser() = %v, want %v", got, tt.want)
 			}
 		})
 	}

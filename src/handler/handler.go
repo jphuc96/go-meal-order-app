@@ -13,9 +13,3 @@ func NewCoreHandler(service *service.Service) *CoreHandler {
 		service: service,
 	}
 }
-
-// func (c *CoreHandler) GetUser(rw, resp) {
-// 	req => input
-// 	out c.GetUser(input)
-// 	out => resp
-// }

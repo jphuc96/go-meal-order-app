@@ -44,7 +44,7 @@ var _ Service = &ServiceMock{}
 //             ExistFunc: func(o *domain.OrderInput) (bool, error) {
 // 	               panic("mock out the Exist method")
 //             },
-//             GetFunc: func(userID int) ([]*domain.Item, error) {
+//             GetFunc: func(menuID string, userID string) ([]*domain.Item, error) {
 // 	               panic("mock out the Get method")
 //             },
 //             GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
@@ -73,7 +73,7 @@ type ServiceMock struct {
 	ExistFunc func(o *domain.OrderInput) (bool, error)
 
 	// GetFunc mocks the Get method.
-	GetFunc func(userID int) ([]*domain.Item, error)
+	GetFunc func(menuID string, userID string) ([]*domain.Item, error)
 
 	// GetAllOrdersByItemIDFunc mocks the GetAllOrdersByItemID method.
 	GetAllOrdersByItemIDFunc func(ItemID int) ([]*models.Order, error)
@@ -107,8 +107,10 @@ type ServiceMock struct {
 		}
 		// Get holds details about calls to the Get method.
 		Get []struct {
+			// MenuID is the menuID argument value.
+			MenuID string
 			// UserID is the userID argument value.
-			UserID int
+			UserID string
 		}
 		// GetAllOrdersByItemID holds details about calls to the GetAllOrdersByItemID method.
 		GetAllOrdersByItemID []struct {
@@ -274,29 +276,33 @@ func (mock *ServiceMock) ExistCalls() []struct {
 }
 
 // Get calls GetFunc.
-func (mock *ServiceMock) Get(userID int) ([]*domain.Item, error) {
+func (mock *ServiceMock) Get(menuID string, userID string) ([]*domain.Item, error) {
 	if mock.GetFunc == nil {
 		panic("ServiceMock.GetFunc: method is nil but Service.Get was just called")
 	}
 	callInfo := struct {
-		UserID int
+		MenuID string
+		UserID string
 	}{
+		MenuID: menuID,
 		UserID: userID,
 	}
 	lockServiceMockGet.Lock()
 	mock.calls.Get = append(mock.calls.Get, callInfo)
 	lockServiceMockGet.Unlock()
-	return mock.GetFunc(userID)
+	return mock.GetFunc(menuID, userID)
 }
 
 // GetCalls gets all the calls that were made to Get.
 // Check the length with:
 //     len(mockedService.GetCalls())
 func (mock *ServiceMock) GetCalls() []struct {
-	UserID int
+	MenuID string
+	UserID string
 } {
 	var calls []struct {
-		UserID int
+		MenuID string
+		UserID string
 	}
 	lockServiceMockGet.RLock()
 	calls = mock.calls.Get

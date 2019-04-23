@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
+	github.com/gorilla/mux v1.7.1
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/lib/pq v1.1.0
 	github.com/mattn/go-colorable v0.1.1 // indirect

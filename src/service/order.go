@@ -30,8 +30,8 @@ func (s *Service) DeleteOrder(o *domain.OrderInput) error {
 }
 
 //GetOrdersByUserID gets items in user order by user ID
-func (s *Service) GetOrdersByUserID(userID int) ([]*domain.Item, error) {
-	items, err := s.Store.Order.Get(userID)
+func (s *Service) GetOrdersByMenuAndUser(menuID string, userID string) ([]*domain.Item, error) {
+	items, err := s.Store.Order.Get(menuID, userID)
 	if err != nil {
 		return nil, err
 	}
