@@ -3,9 +3,6 @@ package menu
 import (
 	"context"
 	"database/sql"
-	"errors"
-
-	
 
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
@@ -49,12 +46,12 @@ func (mn *menuService) Create(p *domain.CreateMenuInput) (*models.Menu, error) {
 	m := mapMenuInputToModel(p)
 	tx, err := mn.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return nil, errors.New(domain.TxCreateFailed)
+		return nil, domain.TxCreateFailed
 	}
 	err = m.Insert(context.Background(), tx, boil.Infer())
 	if err != nil {
 		tx.Rollback()
-		return nil, errors.New(domain.TxRollBack)
+		return nil, domain.TxRollBack
 	}
 	tx.Commit()
 	return m, nil

@@ -22,13 +22,25 @@ func NewService(db *sql.DB) Service {
 	}
 }
 
-func (us *userService) Create(p *domain.CreateUserInput) (*models.User, error) {
-	u := &models.User{Name: p.Name, Email: p.Email, Token: p.Token}
-	err := u.Insert(context.Background(), us.db, boil.Infer())
+func userInputToDBMapping(p *domain.CreateUserInput) *models.User {
+	return &models.User{
+		Name:  p.Name,
+		Email: p.Email,
+		Token: p.Token,
+	}
+}
+
+func (us *userService) Create(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error) {
+	u := userInputToDBMapping(p)
+	err := u.Insert(context.Background(), tx, boil.Infer())
 	if err != nil {
 		return nil, errors.New("Insert failed")
 	}
 	return us.Find(p)
+}
+
+func (us *userService) Exist(p *domain.CreateUserInput) (bool, error) {
+	return models.Users(qm.Where("email=?", p.Email)).Exists(context.Background(), us.db)
 }
 
 func (us *userService) Find(p *domain.CreateUserInput) (*models.User, error) {
@@ -39,4 +51,14 @@ func (us *userService) Find(p *domain.CreateUserInput) (*models.User, error) {
 func (us *userService) FindAll() ([]*models.User, error) {
 	users, err := models.Users().All(context.Background(), us.db)
 	return users, err
+}
+
+func (us *userService) UpdateToken(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error {
+	user, err := models.Users(qm.Where("email=? AND token=?", p.Email, p.Token)).One(context.Background(), us.db)
+	if err != nil {
+		return err
+	}
+	user.Token = newToken
+	_, err = user.Update(context.Background(), tx, boil.Infer())
+	return err
 }

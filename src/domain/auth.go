@@ -14,5 +14,17 @@ type FTResp struct {
 }
 
 type VerifyResp struct {
-	AuthInfo CreateUserInput `json:"auth_info,omitempty"`
+	AuthInfo CreateaUserOutput `json:"auth_info,omitempty"`
+}
+
+type GoogleUserInfo struct {
+	ID            string `json:"id"`
+	Email         string `json:"email"`
+	VerifiedEmail bool   `json:"verified_email"`
+	Picture       string `json:"picture"`
+}
+
+type AuthResp struct {
+	Token          string         `json:"token"`
+	GoogleUserInfo GoogleUserInfo `json:"user_info"`
 }

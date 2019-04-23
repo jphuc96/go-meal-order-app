@@ -1,8 +1,6 @@
 package service
 
 import (
-	"errors"
-
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 )
@@ -14,7 +12,7 @@ func (s *Service) CreateMenu(p *domain.CreateMenuInput) (*models.Menu, error) {
 		return nil, err
 	}
 	if exist {
-		return nil, errors.New(domain.MenuExist)
+		return nil, domain.MenuExist
 	}
 	return s.Store.MenuStore.Create(p)
 }

@@ -1,8 +1,6 @@
 package service
 
 import (
-	"errors"
-
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 )
@@ -10,7 +8,7 @@ import (
 func (s *Service) AddPIC(p *domain.PICInput) (*models.PeopleInCharge, error) {
 	exist, _ := s.Store.PICStore.Exist(p)
 	if exist {
-		return nil, errors.New(domain.PICExist)
+		return nil, domain.PICExist
 	}
 
 	return s.Store.PICStore.Add(p)
