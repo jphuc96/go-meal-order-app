@@ -15,21 +15,21 @@ type Service struct {
 }
 
 type Store struct {
-	User  user.Service
-	Item  item.Service
-	Menu  menu.Service
-	Order order.Service
-	PIC   pic.Service
+	UserStore  user.Service
+	ItemStore  item.Service
+	MenuStore  menu.Service
+	OrderStore order.Service
+	PICStore   pic.Service
 }
 
 func NewService(db *sql.DB) *Service {
 	return &Service{
 		Store: Store{
-			User:  user.NewService(db),
-			Item:  item.NewService(db),
-			Menu:  menu.NewService(db),
-			Order: order.NewService(db),
-			PIC:   pic.NewService(db),
+			UserStore:  user.NewService(db),
+			ItemStore:  item.NewService(db),
+			MenuStore:  menu.NewService(db),
+			OrderStore: order.NewService(db),
+			PICStore:   pic.NewService(db),
 		},
 	}
 }

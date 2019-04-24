@@ -8,13 +8,13 @@ import (
 )
 
 //CreateMenu function
-func (s *Service) CreateMenu(p *domain.MenuInput) (*models.Menu, error) {
-	menu, err := s.Menu.FindByName(p.MenuName)
+func (s *Service) CreateMenu(p *domain.CreateMenuInput) (*models.Menu, error) {
+	exist, err := s.Store.MenuStore.IsMenuNameUnique(p.MenuName)
 	if err != nil {
 		return nil, err
 	}
-	if menu != nil {
+	if exist {
 		return nil, errors.New("Menu exists")
 	}
-	return s.Menu.Create(p)
+	return s.Store.MenuStore.Create(p)
 }

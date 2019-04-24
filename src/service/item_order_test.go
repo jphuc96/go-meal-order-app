@@ -373,8 +373,8 @@ func TestService_DeleteItem(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Item:  &tt.fields.Item,
-					Order: &tt.fields.Order,
+					ItemStore:  &tt.fields.Item,
+					OrderStore: &tt.fields.Order,
 				},
 			}
 			got, err := s.DeleteItem(tt.args.i)

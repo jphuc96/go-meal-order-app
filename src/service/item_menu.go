@@ -11,7 +11,7 @@ import (
 func (s *Service) AddItems(items *domain.ItemInput, menuID int) ([]*models.Item, error) {
 	var list []*models.Item
 
-	exists, err := s.Store.Menu.CheckMenuExist(menuID)
+	exists, err := s.Store.MenuStore.CheckMenuExist(menuID)
 	if err != nil {
 		return nil, err
 	}
@@ -21,14 +21,14 @@ func (s *Service) AddItems(items *domain.ItemInput, menuID int) ([]*models.Item,
 
 	for _, it := range items.Items {
 		i := &domain.Item{ItemName: it.ItemName, MenuID: menuID}
-		exists, err := s.Store.Item.CheckItemExist(i.ID)
+		exists, err := s.Store.ItemStore.CheckItemExist(i.ID)
 		if err != nil {
 			return nil, err
 		}
 		if exists {
 			continue
 		}
-		resItem, err := s.Store.Item.Add(i)
+		resItem, err := s.Store.ItemStore.Add(i)
 		if err != nil {
 			return nil, err
 		}

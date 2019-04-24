@@ -18,17 +18,17 @@ func (s *Service) CreateUser(p *domain.UserInput) (*models.User, error) {
 		return nil, errors.New("Invalid email address")
 	}
 
-	u, err := s.Store.User.Find(p)
+	u, err := s.Store.UserStore.Find(p)
 	if err != nil {
 		return nil, err
 	}
 	if u == nil {
-		return s.Store.User.Create(p)
+		return s.Store.UserStore.Create(p)
 	}
 	return nil, errors.New("User existed")
 }
 
 func (s *Service) GetAllUser() ([]*models.User, error) {
-	u, err := s.Store.User.FindAll()
+	u, err := s.Store.UserStore.FindAll()
 	return u, err
 }

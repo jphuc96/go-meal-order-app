@@ -188,8 +188,8 @@ func TestService_AddItems(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store{
-					Menu: &tt.fields.Menu,
-					Item: &tt.fields.Item,
+					MenuStore: &tt.fields.Menu,
+					ItemStore: &tt.fields.Item,
 				},
 			}
 			got, err := s.AddItems(tt.args.items, tt.args.menuID)

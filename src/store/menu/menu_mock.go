@@ -4,15 +4,15 @@
 package menu
 
 import (
-	"sync"
-
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
+	"sync"
 )
 
 var (
-	lockServiceMockCreate     sync.RWMutex
-	lockServiceMockFindByName sync.RWMutex
+	lockServiceMockCheckMenuExist   sync.RWMutex
+	lockServiceMockCreate           sync.RWMutex
+	lockServiceMockIsMenuNameUnique sync.RWMutex
 )
 
 // Ensure, that ServiceMock does implement Service.
@@ -25,11 +25,14 @@ var _ Service = &ServiceMock{}
 //
 //         // make and configure a mocked Service
 //         mockedService := &ServiceMock{
-//             CreateFunc: func(p *domain.MenuInput) (*models.Menu, error) {
+//             CheckMenuExistFunc: func(menuID int) (bool, error) {
+// 	               panic("mock out the CheckMenuExist method")
+//             },
+//             CreateFunc: func(p *domain.CreateMenuInput) (*models.Menu, error) {
 // 	               panic("mock out the Create method")
 //             },
-//             FindByNameFunc: func(menuName string) (*models.Menu, error) {
-// 	               panic("mock out the FindByName method")
+//             IsMenuNameUniqueFunc: func(menuName string) (bool, error) {
+// 	               panic("mock out the IsMenuNameUnique method")
 //             },
 //         }
 //
@@ -38,34 +41,73 @@ var _ Service = &ServiceMock{}
 //
 //     }
 type ServiceMock struct {
-	// CreateFunc mocks the Create method.
-	CreateFunc func(p *domain.MenuInput) (*models.Menu, error)
+	// CheckMenuExistFunc mocks the CheckMenuExist method.
+	CheckMenuExistFunc func(menuID int) (bool, error)
 
-	// FindByNameFunc mocks the FindByName method.
-	FindByNameFunc func(menuName string) (*models.Menu, error)
+	// CreateFunc mocks the Create method.
+	CreateFunc func(p *domain.CreateMenuInput) (*models.Menu, error)
+
+	// IsMenuNameUniqueFunc mocks the IsMenuNameUnique method.
+	IsMenuNameUniqueFunc func(menuName string) (bool, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// CheckMenuExist holds details about calls to the CheckMenuExist method.
+		CheckMenuExist []struct {
+			// MenuID is the menuID argument value.
+			MenuID int
+		}
 		// Create holds details about calls to the Create method.
 		Create []struct {
 			// P is the p argument value.
-			P *domain.MenuInput
+			P *domain.CreateMenuInput
 		}
-		// FindByName holds details about calls to the FindByName method.
-		FindByName []struct {
+		// IsMenuNameUnique holds details about calls to the IsMenuNameUnique method.
+		IsMenuNameUnique []struct {
 			// MenuName is the menuName argument value.
 			MenuName string
 		}
 	}
 }
 
+// CheckMenuExist calls CheckMenuExistFunc.
+func (mock *ServiceMock) CheckMenuExist(menuID int) (bool, error) {
+	if mock.CheckMenuExistFunc == nil {
+		panic("ServiceMock.CheckMenuExistFunc: method is nil but Service.CheckMenuExist was just called")
+	}
+	callInfo := struct {
+		MenuID int
+	}{
+		MenuID: menuID,
+	}
+	lockServiceMockCheckMenuExist.Lock()
+	mock.calls.CheckMenuExist = append(mock.calls.CheckMenuExist, callInfo)
+	lockServiceMockCheckMenuExist.Unlock()
+	return mock.CheckMenuExistFunc(menuID)
+}
+
+// CheckMenuExistCalls gets all the calls that were made to CheckMenuExist.
+// Check the length with:
+//     len(mockedService.CheckMenuExistCalls())
+func (mock *ServiceMock) CheckMenuExistCalls() []struct {
+	MenuID int
+} {
+	var calls []struct {
+		MenuID int
+	}
+	lockServiceMockCheckMenuExist.RLock()
+	calls = mock.calls.CheckMenuExist
+	lockServiceMockCheckMenuExist.RUnlock()
+	return calls
+}
+
 // Create calls CreateFunc.
-func (mock *ServiceMock) Create(p *domain.MenuInput) (*models.Menu, error) {
+func (mock *ServiceMock) Create(p *domain.CreateMenuInput) (*models.Menu, error) {
 	if mock.CreateFunc == nil {
 		panic("ServiceMock.CreateFunc: method is nil but Service.Create was just called")
 	}
 	callInfo := struct {
-		P *domain.MenuInput
+		P *domain.CreateMenuInput
 	}{
 		P: p,
 	}
@@ -79,10 +121,10 @@ func (mock *ServiceMock) Create(p *domain.MenuInput) (*models.Menu, error) {
 // Check the length with:
 //     len(mockedService.CreateCalls())
 func (mock *ServiceMock) CreateCalls() []struct {
-	P *domain.MenuInput
+	P *domain.CreateMenuInput
 } {
 	var calls []struct {
-		P *domain.MenuInput
+		P *domain.CreateMenuInput
 	}
 	lockServiceMockCreate.RLock()
 	calls = mock.calls.Create
@@ -90,33 +132,33 @@ func (mock *ServiceMock) CreateCalls() []struct {
 	return calls
 }
 
-// FindByName calls FindByNameFunc.
-func (mock *ServiceMock) FindByName(menuName string) (*models.Menu, error) {
-	if mock.FindByNameFunc == nil {
-		panic("ServiceMock.FindByNameFunc: method is nil but Service.FindByName was just called")
+// IsMenuNameUnique calls IsMenuNameUniqueFunc.
+func (mock *ServiceMock) IsMenuNameUnique(menuName string) (bool, error) {
+	if mock.IsMenuNameUniqueFunc == nil {
+		panic("ServiceMock.IsMenuNameUniqueFunc: method is nil but Service.IsMenuNameUnique was just called")
 	}
 	callInfo := struct {
 		MenuName string
 	}{
 		MenuName: menuName,
 	}
-	lockServiceMockFindByName.Lock()
-	mock.calls.FindByName = append(mock.calls.FindByName, callInfo)
-	lockServiceMockFindByName.Unlock()
-	return mock.FindByNameFunc(menuName)
+	lockServiceMockIsMenuNameUnique.Lock()
+	mock.calls.IsMenuNameUnique = append(mock.calls.IsMenuNameUnique, callInfo)
+	lockServiceMockIsMenuNameUnique.Unlock()
+	return mock.IsMenuNameUniqueFunc(menuName)
 }
 
-// FindByNameCalls gets all the calls that were made to FindByName.
+// IsMenuNameUniqueCalls gets all the calls that were made to IsMenuNameUnique.
 // Check the length with:
-//     len(mockedService.FindByNameCalls())
-func (mock *ServiceMock) FindByNameCalls() []struct {
+//     len(mockedService.IsMenuNameUniqueCalls())
+func (mock *ServiceMock) IsMenuNameUniqueCalls() []struct {
 	MenuName string
 } {
 	var calls []struct {
 		MenuName string
 	}
-	lockServiceMockFindByName.RLock()
-	calls = mock.calls.FindByName
-	lockServiceMockFindByName.RUnlock()
+	lockServiceMockIsMenuNameUnique.RLock()
+	calls = mock.calls.IsMenuNameUnique
+	lockServiceMockIsMenuNameUnique.RUnlock()
 	return calls
 }

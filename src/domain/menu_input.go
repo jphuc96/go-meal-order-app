@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // MenuInput ..
-type MenuInput struct {
+type CreateMenuInput struct {
 	ID              int
 	OwnerID         int
 	MenuName        string

@@ -61,7 +61,7 @@ func TestService_AddOrder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Order: &tt.fields.Order,
+					OrderStore: &tt.fields.Order,
 				},
 			}
 			if _, err := s.AddOrder(tt.args.t, tt.args.o); (err != nil) != tt.wantErr {
@@ -116,7 +116,7 @@ func TestService_DeleteOrder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Order: &tt.fields.Order,
+					OrderStore: &tt.fields.Order,
 				},
 			}
 			if err := s.DeleteOrder(tt.args.t, tt.args.o); (err != nil) != tt.wantErr {
@@ -169,7 +169,7 @@ func TestService_GetOrdersByMenuAndUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Order: &tt.fields.Order,
+					OrderStore: &tt.fields.Order,
 				},
 			}
 			got, err := s.GetOrdersByMenuAndUser(tt.args.menuID, tt.args.userID)
