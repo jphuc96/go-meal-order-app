@@ -26,9 +26,8 @@ func (a *App) NewApp() (*App, error) {
 	if err != nil {
 		return nil, errors.New("could not connect to database")
 	}
-
 	a.Service = service.NewService(db)
-	a.Handler = handler.NewCoreHandler(a.Service)
+	a.Handler = handler.NewCoreHandler(a.Service, db)
 	a.Router = mux.NewRouter()
 	a.SetRouters()
 

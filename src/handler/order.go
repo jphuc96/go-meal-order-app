@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -21,13 +23,14 @@ func (c *CoreHandler) GetOrdersOfUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	itemsRes := make([]int, len(items))
+	itemsRes := make([]domain.OrderItem, len(items))
 	for i, item := range items {
-		itemsRes[i] = item.ID
+		itemsRes[i].ID = item.ID
+		itemsRes[i].Name = item.ItemName
 	}
 
-	json.NewEncoder(w).Encode(&domain.OrderJSON{
-		ItemIDs: itemsRes,
+	json.NewEncoder(w).Encode(&domain.OrderResp{
+		Items: itemsRes,
 	})
 }
 
@@ -36,48 +39,72 @@ func (c *CoreHandler) CreateOrModifyOrder(w http.ResponseWriter, r *http.Request
 	menuID := vars["MenuID"]
 	userID := vars["UserID"]
 
-	oldItems, err := c.service.GetOrdersByMenuAndUser(menuID, userID)
-	if err != nil {
-		handleHTTPError(err, http.StatusBadRequest, w)
-		return
-	}
-
-	var newItems domain.OrderJSON
+	var newItems domain.OrderReq
 	d := json.NewDecoder(r.Body)
-	err = d.Decode(&newItems)
+	err := d.Decode(&newItems)
 	if err != nil {
 		handleHTTPError(err, http.StatusBadRequest, w)
 		return
 	}
 
-	// for _, item := range newItems.ItemIDs {
-
-	// }
-
-	for _, item := range oldItems {
-		userIDStr, _ := strconv.Atoi(userID)
-		_ = c.service.DeleteOrder(&domain.OrderInput{
-			UserID: userIDStr,
-			ItemID: item.ID,
-		})
-	}
-
-	var orderRes domain.OrderJSON
+	// Check if all requested items exist
+	invalidItemID := make([]int, 0)
 	for _, item := range newItems.ItemIDs {
-		userIDStr, _ := strconv.Atoi(userID)
-		orders, err := c.service.AddOrder(&domain.OrderInput{
-			UserID: userIDStr,
-			ItemID: item,
-		})
+		exist, err := c.service.CheckItemExist(item)
 		if err != nil {
-			fmt.Println(err)
-		} else {
-			orderRes.ItemIDs = append(orderRes.ItemIDs, orders.ItemID)
+			handleHTTPError(err, http.StatusInternalServerError, w)
+			return
+		}
+
+		if !exist {
+			invalidItemID = append(invalidItemID, item)
 		}
 	}
 
-	json.NewEncoder(w).Encode(orderRes)
+	if len(invalidItemID) != 0 {
+		handleHTTPError(fmt.Errorf("invalid value: %v", invalidItemID), http.StatusBadRequest, w)
+		return
+	}
 
+	tx, err := c.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		handleHTTPError(err, http.StatusInternalServerError, w)
+	}
+
+	_, err = c.deleteAllOrdersByMenuAndUser(tx, menuID, userID)
+	if err != nil {
+		tx.Rollback()
+		handleHTTPError(err, http.StatusBadRequest, w)
+		return
+	}
+	tx.Commit()
+
+	tx, err = c.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		handleHTTPError(err, http.StatusInternalServerError, w)
+	}
+
+	// var orderResp domain.OrderResp
+	for _, itemID := range newItems.ItemIDs {
+		userIDInt, err := strconv.Atoi(userID)
+		if err != nil {
+			handleHTTPError(err, http.StatusBadRequest, w)
+			return
+		}
+
+		_, err = c.service.AddOrder(tx, &domain.OrderInput{
+			UserID: userIDInt,
+			ItemID: itemID,
+		})
+		if err != nil {
+			tx.Rollback()
+			handleHTTPError(err, http.StatusBadRequest, w)
+			return
+		}
+	}
+
+	tx.Commit()
+	c.GetOrdersOfUser(w, r)
 }
 
 func (c *CoreHandler) CancelAllOrderOfUser(w http.ResponseWriter, r *http.Request) {
@@ -85,27 +112,49 @@ func (c *CoreHandler) CancelAllOrderOfUser(w http.ResponseWriter, r *http.Reques
 	menuID := vars["MenuID"]
 	userID := vars["UserID"]
 
-	delItems, err := c.service.GetOrdersByMenuAndUser(menuID, userID)
+	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
+		handleHTTPError(err, http.StatusInternalServerError, w)
+	}
+
+	delItems, err := c.deleteAllOrdersByMenuAndUser(tx, menuID, userID)
+	if err != nil {
+		tx.Rollback()
 		handleHTTPError(err, http.StatusBadRequest, w)
 		return
 	}
 
+	var orderResp domain.OrderResp
 	for _, item := range delItems {
-		userIDStr, _ := strconv.Atoi(userID)
-		c.service.DeleteOrder(&domain.OrderInput{
-			UserID: userIDStr,
-			ItemID: item.ID,
+		orderResp.Items = append(orderResp.Items, domain.OrderItem{
+			ID:   item.ID,
+			Name: item.ItemName,
 		})
 	}
 
-	itemsRes := make([]int, len(delItems))
-	for i, item := range delItems {
-		itemsRes[i] = item.ID
+	tx.Commit()
+	json.NewEncoder(w).Encode(orderResp)
+}
+
+func (c *CoreHandler) deleteAllOrdersByMenuAndUser(tx *sql.Tx, menuID string, userID string) ([]*domain.Item, error) {
+	delItems, err := c.service.GetOrdersByMenuAndUser(menuID, userID)
+	if err != nil {
+		return nil, err
 	}
 
-	json.NewEncoder(w).Encode(&domain.OrderJSON{
-		ItemIDs: itemsRes,
-	})
+	for _, item := range delItems {
+		userIDStr, err := strconv.Atoi(userID)
+		if err != nil {
+			return nil, err
+		}
+		err = c.service.DeleteOrder(tx, &domain.OrderInput{
+			UserID: userIDStr,
+			ItemID: item.ID,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
 
+	return delItems, nil
 }

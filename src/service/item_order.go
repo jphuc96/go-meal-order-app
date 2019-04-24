@@ -9,8 +9,7 @@ import (
 
 // DeleteItem ..
 func (s *Service) DeleteItem(i *domain.Item) (*models.Item, error) {
-
-	exists, err := s.Store.Item.CheckItemExist(&domain.Item{ID: i.ID, MenuID: i.MenuID})
+	exists, err := s.Store.Item.CheckItemExist(i.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -46,4 +45,12 @@ func (s *Service) DeleteItem(i *domain.Item) (*models.Item, error) {
 	}
 
 	return it, err
+}
+
+func (s *Service) CheckItemExist(itemID int) (bool, error) {
+	return s.Store.Item.CheckItemExist(itemID)
+}
+
+func (s *Service) GetItemByID(itemID int) (*models.Item, error) {
+	return s.Store.Item.FindByID(itemID)
 }

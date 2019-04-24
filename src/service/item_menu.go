@@ -21,7 +21,7 @@ func (s *Service) AddItems(items *domain.ItemInput, menuID int) ([]*models.Item,
 
 	for _, it := range items.Items {
 		i := &domain.Item{ItemName: it.ItemName, MenuID: menuID}
-		exists, err := s.Store.Item.CheckItemExist(i)
+		exists, err := s.Store.Item.CheckItemExist(i.ID)
 		if err != nil {
 			return nil, err
 		}

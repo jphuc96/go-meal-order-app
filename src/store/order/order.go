@@ -4,14 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
-	"strconv"
 
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
 
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
+	"git.d.foundation/datcom/backend/src/errconst"
 )
 
 type orderService struct {
@@ -24,27 +23,27 @@ func NewService(db *sql.DB) Service {
 	}
 }
 
-func (os *orderService) Add(o *domain.OrderInput) (*models.Order, error) {
+func (os *orderService) Add(tx *sql.Tx, o *domain.OrderInput) (*models.Order, error) {
 	order := &models.Order{
 		UserID: o.UserID,
 		ItemID: o.ItemID,
 	}
 
-	err := order.Insert(context.Background(), os.db, boil.Infer())
+	err := order.Insert(context.Background(), tx, boil.Infer())
 	if err != nil {
-		return nil, fmt.Errorf("cannot insert item_id " + strconv.Itoa(order.ItemID))
+		return nil, err
 	}
 
 	return order, err
 }
 
-func (os *orderService) Delete(o *domain.OrderInput) error {
-	order, err := models.Orders(qm.Where("user_id=? and item_id=?", o.UserID, o.ItemID)).One(context.Background(), os.db)
+func (os *orderService) Delete(tx *sql.Tx, o *domain.OrderInput) error {
+	order, err := models.Orders(qm.Where("user_id=? and item_id=?", o.UserID, o.ItemID)).One(context.Background(), tx)
 	if err != nil {
 		return err
 	}
 
-	_, err = order.Delete(context.Background(), os.db)
+	_, err = order.Delete(context.Background(), tx)
 
 	return err
 }
@@ -63,7 +62,7 @@ func (os *orderService) Get(menuID string, userID string) ([]*domain.Item, error
 		return nil, err
 	}
 	if b == false {
-		return nil, errors.New("menu does not exist")
+		return nil, errors.New(errconst.MenuNotExist)
 	}
 
 	b, err = models.Users(qm.Where("id=?", userID)).Exists(context.Background(), os.db)
@@ -71,7 +70,7 @@ func (os *orderService) Get(menuID string, userID string) ([]*domain.Item, error
 		return nil, err
 	}
 	if b == false {
-		return nil, errors.New("user does not exist")
+		return nil, errors.New(errconst.UserNotExist)
 	}
 
 	orders, err := models.Orders(qm.Where("user_id=?", userID)).All(context.Background(), os.db)
@@ -116,4 +115,8 @@ func (s *orderService) GetAllOrdersByItemID(ItemID int) ([]*models.Order, error)
 	return models.Orders(
 		qm.Where("item_id=?", ItemID),
 	).All(context.Background(), s.db)
+}
+
+func (s *orderService) GetOrderByOrderInput(o *domain.OrderInput) (*models.Order, error) {
+	return models.Orders(qm.Where("user_id=? AND item_id=?", o.UserID, o.ItemID)).One(context.Background(), s.db)
 }

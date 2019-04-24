@@ -43,9 +43,10 @@ func (s *itemService) Delete(i *models.Item) error {
 	return err
 }
 
-func (s *itemService) CheckItemExist(it *domain.Item) (bool, error) {
-	i := mapItemInputToModel(it)
-	return models.Items(
-		qm.Where("(item_name = ? AND menu_id = ?) OR (id = ? AND menu_id = ?)", i.ItemName, i.MenuID, i.ID, i.MenuID),
-	).Exists(context.Background(), s.db)
+func (s *itemService) CheckItemExist(itemID int) (bool, error) {
+	b, err := models.Items(qm.Where("id=?", itemID)).Exists(context.Background(), s.db)
+	if err != nil {
+		return false, err
+	}
+	return b, nil
 }

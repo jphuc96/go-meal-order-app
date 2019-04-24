@@ -31,7 +31,7 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "PassNoOrder",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return true, nil
 					},
 					FindByIDFunc: func(itemID int) (*models.Item, error) {
@@ -74,7 +74,7 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "PassWithOrders",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return true, nil
 					},
 					FindByIDFunc: func(itemID int) (*models.Item, error) {
@@ -122,7 +122,7 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "NoItem",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return false, nil
 					},
 					FindByIDFunc: func(itemID int) (*models.Item, error) {
@@ -157,7 +157,7 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "CheckItemError",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return false, errors.New("Check Item Error")
 					},
 					FindByIDFunc: func(itemID int) (*models.Item, error) {
@@ -192,7 +192,7 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Find Item Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return true, nil
 					},
 					FindByIDFunc: func(itemID int) (*models.Item, error) {
@@ -227,7 +227,7 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Delete Item Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return true, nil
 					},
 					FindByIDFunc: func(itemID int) (*models.Item, error) {
@@ -262,7 +262,7 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Check Order Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return true, nil
 					},
 					FindByIDFunc: func(itemID int) (*models.Item, error) {
@@ -297,7 +297,7 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Get Orders Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return true, nil
 					},
 					FindByIDFunc: func(itemID int) (*models.Item, error) {
@@ -332,7 +332,7 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Delete Order Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return true, nil
 					},
 					FindByIDFunc: func(itemID int) (*models.Item, error) {
@@ -384,6 +384,98 @@ func TestService_DeleteItem(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Service.DeleteItem() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_CheckItemExist(t *testing.T) {
+	type fields struct {
+		Item item.ServiceMock
+	}
+	type args struct {
+		itemID int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "check exist success",
+			fields: fields{
+				item.ServiceMock{
+					CheckItemExistFunc: func(itemID int) (bool, error) {
+						return false, nil
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: Store{
+					Item: &tt.fields.Item,
+				},
+			}
+			got, err := s.CheckItemExist(tt.args.itemID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.CheckItemExist() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.CheckItemExist() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_GetItemByID(t *testing.T) {
+	type fields struct {
+		Item item.ServiceMock
+	}
+	type args struct {
+		itemID int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *models.Item
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test get item by id",
+			fields: fields{
+				item.ServiceMock{
+					FindByIDFunc: func(itemID int) (*models.Item, error) {
+						return nil, nil
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: Store{
+					Item: &tt.fields.Item,
+				},
+			}
+			got, err := s.GetItemByID(tt.args.itemID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetItemByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.GetItemByID() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -38,6 +38,12 @@
                 "device_token" : "string",
                 "device_type" : "string"
             },
+            "users" : {
+                "id" : 0,
+                "name" : "string",
+                "email" : "string",
+                "token" : "string"
+            }
         }
         ```
 
@@ -83,7 +89,7 @@
                 "deadline" : "string",
                 "payment_reminder" : "string"
             },
-            "items_name" : [],
+            "items_names" : [],
         }
         ```
     - Response:
@@ -161,21 +167,6 @@
         }
         ```
 
-<!-- #### /menus/{MenuID}/orders
-
-- GET: Get all orders of menu
-    - Request:
-        ```json
-        {}
-        ```
-    - Response:
-    ```json
-    {   
-        
-    }
-    ``` -->
-
-
 #### /menus/{MenuID}/summary
 
 - GET: Get menu summary (items, members, quantity)
@@ -215,7 +206,12 @@
     - Response:
         ```json
         {
-            "item_id" : [],
+            "items" : [
+                {
+                    "id" : 0,
+                    "name" : "string"
+                }
+            ]
                   
         }
         ```
@@ -223,13 +219,18 @@
     - Request:
         ```json
         {
-            "item_id" : []
+            "item_ids" : []
         }
         ```
     - Response:
         ```json
         {
-            "item_id" : [],    
+            "items" : [
+                {
+                    "id" : 0,
+                    "name" : "string"
+                }
+            ]
         }
         ```
 - DELETE: Cancel all orders of user
@@ -240,7 +241,13 @@
     - Response:
         ```json
         {
-            "item_id" : [],    
+            "items" : [
+                {
+                    "id" : 0,
+                    "name" : "string"
+                }
+            ]
+                  
         }
         ```
 #### /menus/{MenuID}/pic

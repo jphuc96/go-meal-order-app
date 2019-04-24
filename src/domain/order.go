@@ -5,6 +5,14 @@ type OrderInput struct {
 	ItemID int
 }
 
-type OrderJSON struct {
+type OrderReq struct {
 	ItemIDs []int `json:"item_ids"`
+}
+type OrderItem struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type OrderResp struct {
+	Items []OrderItem `json:"items"`
 }
