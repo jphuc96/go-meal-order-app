@@ -13,4 +13,5 @@ type Service interface {
 	Exist(p *domain.CreateUserInput) (bool, error)
 	FindAll() ([]*models.User, error)
 	UpdateToken(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error
+	GetByID(tx *sql.Tx, userID int) (*models.User, error)
 }

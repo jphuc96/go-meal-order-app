@@ -11,10 +11,11 @@ import (
 )
 
 var (
-	lockServiceMockAdd            sync.RWMutex
-	lockServiceMockCheckItemExist sync.RWMutex
-	lockServiceMockDelete         sync.RWMutex
-	lockServiceMockFindByID       sync.RWMutex
+	lockServiceMockAdd                 sync.RWMutex
+	lockServiceMockCheckItemExist      sync.RWMutex
+	lockServiceMockDelete              sync.RWMutex
+	lockServiceMockFindByID            sync.RWMutex
+	lockServiceMockGetAllItemsByMenuID sync.RWMutex
 )
 
 // Ensure, that ServiceMock does implement Service.
@@ -39,6 +40,9 @@ var _ Service = &ServiceMock{}
 //             FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 // 	               panic("mock out the FindByID method")
 //             },
+//             GetAllItemsByMenuIDFunc: func(menuID int) ([]*models.Item, error) {
+// 	               panic("mock out the GetAllItemsByMenuID method")
+//             },
 //         }
 //
 //         // use mockedService in code that requires Service
@@ -57,6 +61,9 @@ type ServiceMock struct {
 
 	// FindByIDFunc mocks the FindByID method.
 	FindByIDFunc func(tx *sql.Tx, itemID int) (*models.Item, error)
+
+	// GetAllItemsByMenuIDFunc mocks the GetAllItemsByMenuID method.
+	GetAllItemsByMenuIDFunc func(menuID int) ([]*models.Item, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -87,6 +94,11 @@ type ServiceMock struct {
 			Tx *sql.Tx
 			// ItemID is the itemID argument value.
 			ItemID int
+		}
+		// GetAllItemsByMenuID holds details about calls to the GetAllItemsByMenuID method.
+		GetAllItemsByMenuID []struct {
+			// MenuID is the menuID argument value.
+			MenuID int
 		}
 	}
 }
@@ -228,5 +240,36 @@ func (mock *ServiceMock) FindByIDCalls() []struct {
 	lockServiceMockFindByID.RLock()
 	calls = mock.calls.FindByID
 	lockServiceMockFindByID.RUnlock()
+	return calls
+}
+
+// GetAllItemsByMenuID calls GetAllItemsByMenuIDFunc.
+func (mock *ServiceMock) GetAllItemsByMenuID(menuID int) ([]*models.Item, error) {
+	if mock.GetAllItemsByMenuIDFunc == nil {
+		panic("ServiceMock.GetAllItemsByMenuIDFunc: method is nil but Service.GetAllItemsByMenuID was just called")
+	}
+	callInfo := struct {
+		MenuID int
+	}{
+		MenuID: menuID,
+	}
+	lockServiceMockGetAllItemsByMenuID.Lock()
+	mock.calls.GetAllItemsByMenuID = append(mock.calls.GetAllItemsByMenuID, callInfo)
+	lockServiceMockGetAllItemsByMenuID.Unlock()
+	return mock.GetAllItemsByMenuIDFunc(menuID)
+}
+
+// GetAllItemsByMenuIDCalls gets all the calls that were made to GetAllItemsByMenuID.
+// Check the length with:
+//     len(mockedService.GetAllItemsByMenuIDCalls())
+func (mock *ServiceMock) GetAllItemsByMenuIDCalls() []struct {
+	MenuID int
+} {
+	var calls []struct {
+		MenuID int
+	}
+	lockServiceMockGetAllItemsByMenuID.RLock()
+	calls = mock.calls.GetAllItemsByMenuID
+	lockServiceMockGetAllItemsByMenuID.RUnlock()
 	return calls
 }

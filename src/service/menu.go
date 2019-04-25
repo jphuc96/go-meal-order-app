@@ -6,7 +6,7 @@ import (
 )
 
 //CreateMenu function
-func (s *Service) CreateMenu(p *domain.CreateMenuInput) (*models.Menu, error) {
+func (s *Service) CreateMenu(p *domain.MenuInput) (*models.Menu, error) {
 	exist, err := s.Store.MenuStore.IsMenuNameUnique(p.MenuName)
 	if err != nil {
 		return nil, err

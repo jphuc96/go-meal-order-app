@@ -61,4 +61,6 @@ func (us *userService) UpdateToken(tx *sql.Tx, p *domain.CreateUserInput, newTok
 	user.Token = newToken
 	_, err = user.Update(context.Background(), tx, boil.Infer())
 	return err
+func (us *userService) GetByID(tx *sql.Tx, userID int) (*models.User, error) {
+	return models.FindUser(context.Background(), tx, userID)
 }
