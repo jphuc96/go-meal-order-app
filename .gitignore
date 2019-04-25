@@ -49,3 +49,7 @@ sqlboiler.toml
 # Code coverage
 coverage.out
 coverage.html
+
+# Docker environment, need to be kept locally
+db-local.env
+db-heroku.env

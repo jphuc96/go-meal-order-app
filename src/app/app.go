@@ -3,7 +3,6 @@ package app
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -20,12 +19,35 @@ type App struct {
 	Handler *handler.CoreHandler
 }
 
-func (a *App) NewApp() (*App, error) {
-	connectionString := "user=postgres dbname=datcom sslmode=disable password=datcom host=localhost port=5432"
-	db, err := sql.Open("postgres", connectionString)
+type DBConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	DBName   string
+	SSLMode  string
+}
+
+func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
+
+	connString := "host=" + dbConfig.Host +
+		" port=" + dbConfig.Port +
+		" user=" + dbConfig.User +
+		" password=" + dbConfig.Password +
+		" dbname=" + dbConfig.DBName +
+		" sslmode=" + dbConfig.SSLMode
+
+	db, err := sql.Open("postgres", connString)
 	if err != nil {
 		return nil, errors.New("could not connect to database")
 	}
+	log.Println("database config:")
+	log.Println("host: " + dbConfig.Host)
+	log.Println("port: " + dbConfig.Port)
+	log.Println("user: " + dbConfig.User)
+	log.Println("password: " + dbConfig.Password)
+	log.Println("ssl mode: " + dbConfig.SSLMode)
+
 	a.Service = service.NewService(db)
 	a.Handler = handler.NewCoreHandler(a.Service, db)
 	a.Router = mux.NewRouter()
@@ -121,6 +143,6 @@ func (a *App) AddPeopleInCharge(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) RunServer(host string) {
-	fmt.Printf("server in running at %s\n", host)
+	log.Println("server is running at " + host)
 	log.Fatal(http.ListenAndServe(host, a.Router))
 }
