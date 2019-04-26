@@ -11,8 +11,25 @@ import (
 )
 
 func main() {
-	connectionString := "user=postgres dbname=datcom sslmode=disable password=datcom host=localhost port=5432"
-	store, err := store.NewPostgresMigrator(connectionString)
+	Host := os.Getenv("DB_HOST")
+	Port := os.Getenv("DB_PORT")
+	User := os.Getenv("DB_USER")
+	Password := os.Getenv("DB_PASSWORD")
+	DBName := os.Getenv("DB_NAME")
+	SSLMode := os.Getenv("DB_SSL")
+
+	if Host == "" || Port == "" || User == "" || Password == "" || DBName == "" || SSLMode == "" {
+		log.Fatal("missing environments")
+	}
+
+	connString := "host=" + Host +
+		" port=" + Port +
+		" user=" + User +
+		" password=" + Password +
+		" dbname=" + DBName +
+		" sslmode=" + SSLMode
+
+	store, err := store.NewPostgresMigrator(connString)
 	if err != nil {
 		fmt.Println(err)
 	}
