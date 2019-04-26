@@ -1,21 +1,19 @@
 package handler
 
 import (
+	"database/sql"
+
 	"git.d.foundation/datcom/backend/src/service"
 )
 
 type CoreHandler struct {
 	service *service.Service
+	db      *sql.DB
 }
 
-func NewCoreHandler(service *service.Service) *CoreHandler {
+func NewCoreHandler(service *service.Service, db *sql.DB) *CoreHandler {
 	return &CoreHandler{
 		service: service,
+		db:      db,
 	}
 }
-
-// func (c *CoreHandler) GetUser(rw, resp) {
-// 	req => input
-// 	out c.GetUser(input)
-// 	out => resp
-// }

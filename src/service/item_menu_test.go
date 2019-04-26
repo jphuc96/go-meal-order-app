@@ -37,7 +37,7 @@ func TestService_AddItems(t *testing.T) {
 					},
 				},
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return false, nil
 					},
 					AddFunc: func(*domain.Item) (*models.Item, error) {
@@ -107,7 +107,7 @@ func TestService_AddItems(t *testing.T) {
 					},
 				},
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return false, errors.New("Check Error")
 					},
 				},
@@ -134,7 +134,7 @@ func TestService_AddItems(t *testing.T) {
 					},
 				},
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return true, nil
 					},
 				},
@@ -161,7 +161,7 @@ func TestService_AddItems(t *testing.T) {
 					},
 				},
 				item.ServiceMock{
-					CheckItemExistFunc: func(*domain.Item) (bool, error) {
+					CheckItemExistFunc: func(itemID int) (bool, error) {
 						return false, nil
 					},
 					AddFunc: func(*domain.Item) (*models.Item, error) {

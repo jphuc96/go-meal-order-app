@@ -10,5 +10,5 @@ type Service interface {
 	Add(i *domain.Item) (*models.Item, error)
 	FindByID(itemID int) (*models.Item, error)
 	Delete(i *models.Item) error
-	CheckItemExist(it *domain.Item) (bool, error)
+	CheckItemExist(itemID int) (bool, error)
 }

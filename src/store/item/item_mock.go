@@ -26,10 +26,10 @@ var _ Service = &ServiceMock{}
 //
 //         // make and configure a mocked Service
 //         mockedService := &ServiceMock{
-//             AddFunc: func(in1 *domain.Item) (*models.Item, error) {
+//             AddFunc: func(i *domain.Item) (*models.Item, error) {
 // 	               panic("mock out the Add method")
 //             },
-//             CheckItemExistFunc: func(it *domain.Item) (bool, error) {
+//             CheckItemExistFunc: func(itemID int) (bool, error) {
 // 	               panic("mock out the CheckItemExist method")
 //             },
 //             DeleteFunc: func(i *models.Item) error {
@@ -46,10 +46,10 @@ var _ Service = &ServiceMock{}
 //     }
 type ServiceMock struct {
 	// AddFunc mocks the Add method.
-	AddFunc func(in1 *domain.Item) (*models.Item, error)
+	AddFunc func(i *domain.Item) (*models.Item, error)
 
 	// CheckItemExistFunc mocks the CheckItemExist method.
-	CheckItemExistFunc func(it *domain.Item) (bool, error)
+	CheckItemExistFunc func(itemID int) (bool, error)
 
 	// DeleteFunc mocks the Delete method.
 	DeleteFunc func(i *models.Item) error
@@ -61,13 +61,13 @@ type ServiceMock struct {
 	calls struct {
 		// Add holds details about calls to the Add method.
 		Add []struct {
-			// In1 is the in1 argument value.
-			In1 *domain.Item
+			// I is the i argument value.
+			I *domain.Item
 		}
 		// CheckItemExist holds details about calls to the CheckItemExist method.
 		CheckItemExist []struct {
-			// It is the it argument value.
-			It *domain.Item
+			// ItemID is the itemID argument value.
+			ItemID int
 		}
 		// Delete holds details about calls to the Delete method.
 		Delete []struct {
@@ -83,29 +83,29 @@ type ServiceMock struct {
 }
 
 // Add calls AddFunc.
-func (mock *ServiceMock) Add(in1 *domain.Item) (*models.Item, error) {
+func (mock *ServiceMock) Add(i *domain.Item) (*models.Item, error) {
 	if mock.AddFunc == nil {
 		panic("ServiceMock.AddFunc: method is nil but Service.Add was just called")
 	}
 	callInfo := struct {
-		In1 *domain.Item
+		I *domain.Item
 	}{
-		In1: in1,
+		I: i,
 	}
 	lockServiceMockAdd.Lock()
 	mock.calls.Add = append(mock.calls.Add, callInfo)
 	lockServiceMockAdd.Unlock()
-	return mock.AddFunc(in1)
+	return mock.AddFunc(i)
 }
 
 // AddCalls gets all the calls that were made to Add.
 // Check the length with:
 //     len(mockedService.AddCalls())
 func (mock *ServiceMock) AddCalls() []struct {
-	In1 *domain.Item
+	I *domain.Item
 } {
 	var calls []struct {
-		In1 *domain.Item
+		I *domain.Item
 	}
 	lockServiceMockAdd.RLock()
 	calls = mock.calls.Add
@@ -114,29 +114,29 @@ func (mock *ServiceMock) AddCalls() []struct {
 }
 
 // CheckItemExist calls CheckItemExistFunc.
-func (mock *ServiceMock) CheckItemExist(it *domain.Item) (bool, error) {
+func (mock *ServiceMock) CheckItemExist(itemID int) (bool, error) {
 	if mock.CheckItemExistFunc == nil {
 		panic("ServiceMock.CheckItemExistFunc: method is nil but Service.CheckItemExist was just called")
 	}
 	callInfo := struct {
-		It *domain.Item
+		ItemID int
 	}{
-		It: it,
+		ItemID: itemID,
 	}
 	lockServiceMockCheckItemExist.Lock()
 	mock.calls.CheckItemExist = append(mock.calls.CheckItemExist, callInfo)
 	lockServiceMockCheckItemExist.Unlock()
-	return mock.CheckItemExistFunc(it)
+	return mock.CheckItemExistFunc(itemID)
 }
 
 // CheckItemExistCalls gets all the calls that were made to CheckItemExist.
 // Check the length with:
 //     len(mockedService.CheckItemExistCalls())
 func (mock *ServiceMock) CheckItemExistCalls() []struct {
-	It *domain.Item
+	ItemID int
 } {
 	var calls []struct {
-		It *domain.Item
+		ItemID int
 	}
 	lockServiceMockCheckItemExist.RLock()
 	calls = mock.calls.CheckItemExist

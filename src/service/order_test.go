@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 	"reflect"
 	"testing"
@@ -18,6 +19,7 @@ func TestService_AddOrder(t *testing.T) {
 	}
 	type args struct {
 		o *domain.OrderInput
+		t *sql.Tx
 	}
 	tests := []struct {
 		name    string
@@ -33,7 +35,7 @@ func TestService_AddOrder(t *testing.T) {
 					ExistFunc: func(o *domain.OrderInput) (bool, error) {
 						return false, nil
 					},
-					AddFunc: func(o *domain.OrderInput) (*models.Order, error) {
+					AddFunc: func(tx *sql.Tx, o *domain.OrderInput) (*models.Order, error) {
 						return nil, nil
 					},
 				},
@@ -47,9 +49,12 @@ func TestService_AddOrder(t *testing.T) {
 					ExistFunc: func(o *domain.OrderInput) (bool, error) {
 						return true, nil
 					},
+					GetOrderByOrderInputFunc: func(o *domain.OrderInput) (*models.Order, error) {
+						return nil, nil
+					},
 				},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -59,7 +64,7 @@ func TestService_AddOrder(t *testing.T) {
 					Order: &tt.fields.Order,
 				},
 			}
-			if _, err := s.AddOrder(tt.args.o); (err != nil) != tt.wantErr {
+			if _, err := s.AddOrder(tt.args.t, tt.args.o); (err != nil) != tt.wantErr {
 				t.Errorf("Service.AddOrder() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -72,6 +77,7 @@ func TestService_DeleteOrder(t *testing.T) {
 	}
 	type args struct {
 		o *domain.OrderInput
+		t *sql.Tx
 	}
 	tests := []struct {
 		name    string
@@ -87,7 +93,7 @@ func TestService_DeleteOrder(t *testing.T) {
 					ExistFunc: func(o *domain.OrderInput) (bool, error) {
 						return true, nil
 					},
-					DeleteFunc: func(o *domain.OrderInput) error {
+					DeleteFunc: func(tx *sql.Tx, o *domain.OrderInput) error {
 						return nil
 					},
 				},
@@ -103,7 +109,7 @@ func TestService_DeleteOrder(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -113,19 +119,20 @@ func TestService_DeleteOrder(t *testing.T) {
 					Order: &tt.fields.Order,
 				},
 			}
-			if err := s.DeleteOrder(tt.args.o); (err != nil) != tt.wantErr {
+			if err := s.DeleteOrder(tt.args.t, tt.args.o); (err != nil) != tt.wantErr {
 				t.Errorf("Service.DeleteOrder() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestService_GetOrdersByUserID(t *testing.T) {
+func TestService_GetOrdersByMenuAndUser(t *testing.T) {
 	type fields struct {
 		Order order.ServiceMock
 	}
 	type args struct {
-		userID int
+		menuID string
+		userID string
 	}
 	tests := []struct {
 		name    string
@@ -139,7 +146,7 @@ func TestService_GetOrdersByUserID(t *testing.T) {
 			name: "Test GetOrder() success",
 			fields: fields{
 				order.ServiceMock{
-					GetFunc: func(userID int) ([]*domain.Item, error) {
+					GetFunc: func(menuID string, userID string) ([]*domain.Item, error) {
 						return nil, nil
 					},
 				},
@@ -150,7 +157,7 @@ func TestService_GetOrdersByUserID(t *testing.T) {
 			name: "Test GetOrder() fail",
 			fields: fields{
 				order.ServiceMock{
-					GetFunc: func(userID int) ([]*domain.Item, error) {
+					GetFunc: func(menuID string, userID string) ([]*domain.Item, error) {
 						return nil, errors.New("failed")
 					},
 				},
@@ -165,13 +172,13 @@ func TestService_GetOrdersByUserID(t *testing.T) {
 					Order: &tt.fields.Order,
 				},
 			}
-			got, err := s.GetOrdersByUserID(tt.args.userID)
+			got, err := s.GetOrdersByMenuAndUser(tt.args.menuID, tt.args.userID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.GetOrdersByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Service.GetOrdersByMenuAndUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Service.GetOrdersByUserID() = %v, want %v", got, tt.want)
+				t.Errorf("Service.GetOrdersByMenuAndUser() = %v, want %v", got, tt.want)
 			}
 		})
 	}
