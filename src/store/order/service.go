@@ -10,10 +10,10 @@ import (
 type Service interface {
 	Add(tx *sql.Tx, o *domain.OrderInput) (*models.Order, error)
 	Delete(tx *sql.Tx, o *domain.OrderInput) error
-	Exist(o *domain.OrderInput) (bool, error)
+	Exist(tx *sql.Tx, o *domain.OrderInput) (bool, error)
 	Get(menuID string, userID string) ([]*domain.Item, error)
-	DeleteOrder(o *models.Order) error
-	CheckOrderExistByItemID(ItemID int) (bool, error)
-	GetAllOrdersByItemID(ItemID int) ([]*models.Order, error)
-	GetOrderByOrderInput(o *domain.OrderInput) (*models.Order, error)
+	DeleteOrder(tx *sql.Tx, o *models.Order) error
+	CheckOrderExistByItemID(tx *sql.Tx, ItemID int) (bool, error)
+	GetAllOrdersByItemID(tx *sql.Tx, ItemID int) ([]*models.Order, error)
+	GetOrderByOrderInput(tx *sql.Tx, o *domain.OrderInput) (*models.Order, error)
 }

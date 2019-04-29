@@ -10,7 +10,7 @@ import (
 func (s *Service) AddPIC(p *domain.PICInput) (*models.PeopleInCharge, error) {
 	exist, _ := s.Store.PICStore.Exist(p)
 	if exist {
-		return nil, errors.New("already exist")
+		return nil, errors.New(domain.PICExist)
 	}
 
 	return s.Store.PICStore.Add(p)

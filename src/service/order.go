@@ -9,9 +9,9 @@ import (
 
 //AddOrder adds new order to resource if order does not exist, otherwise return error
 func (s *Service) AddOrder(tx *sql.Tx, o *domain.OrderInput) (*models.Order, error) {
-	exist, _ := s.Store.OrderStore.Exist(o)
+	exist, _ := s.Store.OrderStore.Exist(tx, o)
 	if exist {
-		return s.Store.OrderStore.GetOrderByOrderInput(o)
+		return s.Store.OrderStore.GetOrderByOrderInput(tx, o)
 	}
 
 	return s.Store.OrderStore.Add(tx, o)
@@ -19,7 +19,7 @@ func (s *Service) AddOrder(tx *sql.Tx, o *domain.OrderInput) (*models.Order, err
 
 //DeleteOrder deletes order from resource if order exists, otherwise return error
 func (s *Service) DeleteOrder(tx *sql.Tx, o *domain.OrderInput) error {
-	exist, _ := s.Store.OrderStore.Exist(o)
+	exist, _ := s.Store.OrderStore.Exist(tx, o)
 	if !exist {
 		return nil
 	}

@@ -32,7 +32,7 @@ func TestService_AddOrder(t *testing.T) {
 			name: "Test AddOrder() when order does not exist",
 			fields: fields{
 				order.ServiceMock{
-					ExistFunc: func(o *domain.OrderInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.OrderInput) (bool, error) {
 						return false, nil
 					},
 					AddFunc: func(tx *sql.Tx, o *domain.OrderInput) (*models.Order, error) {
@@ -46,10 +46,10 @@ func TestService_AddOrder(t *testing.T) {
 			name: "Test AddOrder() when order exists",
 			fields: fields{
 				order.ServiceMock{
-					ExistFunc: func(o *domain.OrderInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.OrderInput) (bool, error) {
 						return true, nil
 					},
-					GetOrderByOrderInputFunc: func(o *domain.OrderInput) (*models.Order, error) {
+					GetOrderByOrderInputFunc: func(tx *sql.Tx, o *domain.OrderInput) (*models.Order, error) {
 						return nil, nil
 					},
 				},
@@ -90,7 +90,7 @@ func TestService_DeleteOrder(t *testing.T) {
 			name: "Test DeleteOrder() when order exists",
 			fields: fields{
 				order.ServiceMock{
-					ExistFunc: func(o *domain.OrderInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.OrderInput) (bool, error) {
 						return true, nil
 					},
 					DeleteFunc: func(tx *sql.Tx, o *domain.OrderInput) error {
@@ -104,7 +104,7 @@ func TestService_DeleteOrder(t *testing.T) {
 			name: "Test DeleteOrder() when order does not exist",
 			fields: fields{
 				order.ServiceMock{
-					ExistFunc: func(o *domain.OrderInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.OrderInput) (bool, error) {
 						return false, nil
 					},
 				},

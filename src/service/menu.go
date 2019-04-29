@@ -14,7 +14,7 @@ func (s *Service) CreateMenu(p *domain.CreateMenuInput) (*models.Menu, error) {
 		return nil, err
 	}
 	if exist {
-		return nil, errors.New("Menu exists")
+		return nil, errors.New(domain.MenuExist)
 	}
 	return s.Store.MenuStore.Create(p)
 }

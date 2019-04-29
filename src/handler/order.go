@@ -47,10 +47,15 @@ func (c *CoreHandler) CreateOrModifyOrder(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	tx, err := c.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		handleHTTPError(err, http.StatusInternalServerError, w)
+	}
+
 	// Check if all requested items exist
 	invalidItemID := make([]int, 0)
 	for _, item := range newItems.ItemIDs {
-		exist, err := c.service.CheckItemExist(item)
+		exist, err := c.service.CheckItemExist(tx, item)
 		if err != nil {
 			handleHTTPError(err, http.StatusInternalServerError, w)
 			return
@@ -64,11 +69,6 @@ func (c *CoreHandler) CreateOrModifyOrder(w http.ResponseWriter, r *http.Request
 	if len(invalidItemID) != 0 {
 		handleHTTPError(fmt.Errorf("invalid value: %v", invalidItemID), http.StatusBadRequest, w)
 		return
-	}
-
-	tx, err := c.db.BeginTx(context.Background(), nil)
-	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, w)
 	}
 
 	_, err = c.deleteAllOrdersByMenuAndUser(tx, menuID, userID)

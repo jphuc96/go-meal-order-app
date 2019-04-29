@@ -3,6 +3,9 @@ package menu
 import (
 	"context"
 	"database/sql"
+	"errors"
+
+	
 
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
@@ -42,14 +45,19 @@ func (s *menuService) CheckMenuExist(menuID int) (bool, error) {
 
 //Create function
 func (mn *menuService) Create(p *domain.CreateMenuInput) (*models.Menu, error) {
-	m := &models.Menu{
-		OwnerID:         p.OwnerID,
-		MenuName:        p.MenuName,
-		Deadline:        p.Deadline,
-		PaymentReminder: p.PaymentReminder,
-		Status:          p.Status,
+
+	m := mapMenuInputToModel(p)
+	tx, err := mn.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return nil, errors.New(domain.TxCreateFailed)
 	}
-	return m, m.Insert(context.Background(), mn.db, boil.Infer())
+	err = m.Insert(context.Background(), tx, boil.Infer())
+	if err != nil {
+		tx.Rollback()
+		return nil, errors.New(domain.TxRollBack)
+	}
+	tx.Commit()
+	return m, nil
 }
 
 func (mn *menuService) IsMenuNameUnique(menuName string) (bool, error) {

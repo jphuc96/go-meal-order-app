@@ -53,3 +53,4 @@ coverage.html
 # Docker environment, need to be kept locally
 db-local.env
 db-heroku.env
+config.env
