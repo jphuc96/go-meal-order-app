@@ -66,6 +66,6 @@ func (s *menuService) FindByID(mn *domain.MenuInput) (*models.Menu, error) {
 	return models.FindMenu(context.Background(), s.db, m.ID)
 }
 
-func (s *menuService) GetLatestMenu() (*models.Menu, error) {
-	return models.Menus(qm.OrderBy("created_at DESC")).One(context.Background(), s.db)
+func (s *menuService) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
+	return models.Menus(qm.OrderBy("created_at DESC")).One(context.Background(), tx)
 }

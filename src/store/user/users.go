@@ -36,15 +36,15 @@ func (us *userService) Create(tx *sql.Tx, p *domain.CreateUserInput) (*models.Us
 	if err != nil {
 		return nil, errors.New("Insert failed")
 	}
-	return us.Find(p)
+	return us.Find(tx, p)
 }
 
 func (us *userService) Exist(p *domain.CreateUserInput) (bool, error) {
 	return models.Users(qm.Where("email=?", p.Email)).Exists(context.Background(), us.db)
 }
 
-func (us *userService) Find(p *domain.CreateUserInput) (*models.User, error) {
-	user, err := models.Users(qm.Where("email=?", p.Email)).One(context.Background(), us.db)
+func (us *userService) Find(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error) {
+	user, err := models.Users(qm.Where("email=?", p.Email)).One(context.Background(), tx)
 	return user, err
 }
 
@@ -61,6 +61,8 @@ func (us *userService) UpdateToken(tx *sql.Tx, p *domain.CreateUserInput, newTok
 	user.Token = newToken
 	_, err = user.Update(context.Background(), tx, boil.Infer())
 	return err
+}
+
 func (us *userService) GetByID(tx *sql.Tx, userID int) (*models.User, error) {
 	return models.FindUser(context.Background(), tx, userID)
 }

@@ -77,6 +77,12 @@
                     ]
                 }
             ],
+            "people_in_charge" : [
+                {
+                    "user_id" : 0,
+                    "user_name" : "string"
+                }
+            ]
         }
         ```
 
@@ -192,7 +198,13 @@
                         }
                     ]
                 }
-            ],    
+            ], 
+            "people-in-charge" : [
+                {
+                    "user_id" : 0,
+                    "user_name" : "string"
+                }
+            ]
         }
         ```
 
@@ -250,7 +262,7 @@
                   
         }
         ```
-#### /menus/{MenuID}/pic
+#### /menus/{MenuID}/people-in-charge
 
 - GET: Get people in charge of the menu
     - Request:

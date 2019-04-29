@@ -38,3 +38,24 @@ func (s *Service) GetOrdersByMenuAndUser(menuID string, userID string) ([]*domai
 
 	return items, nil
 }
+
+func (s *Service) GetOrdersByItem(tx *sql.Tx, itemID int) ([]*domain.OrderUser, error) {
+	orderUser := make([]*domain.OrderUser, 0)
+	orders, err := s.Store.OrderStore.GetAllOrdersByItemID(tx, itemID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, order := range orders {
+		user, err := s.Store.UserStore.GetByID(tx, order.UserID)
+		if err != nil {
+			return nil, err
+		}
+		orderUser = append(orderUser, &domain.OrderUser{
+			ID:       user.ID,
+			UserName: user.Name,
+		})
+	}
+
+	return orderUser, nil
+}

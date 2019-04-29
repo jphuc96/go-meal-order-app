@@ -4,6 +4,7 @@
 package menu
 
 import (
+	"database/sql"
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 	"sync"
@@ -36,7 +37,7 @@ var _ Service = &ServiceMock{}
 //             FindByIDFunc: func(mn *domain.MenuInput) (*models.Menu, error) {
 // 	               panic("mock out the FindByID method")
 //             },
-//             GetLatestMenuFunc: func() (*models.Menu, error) {
+//             GetLatestMenuFunc: func(tx *sql.Tx) (*models.Menu, error) {
 // 	               panic("mock out the GetLatestMenu method")
 //             },
 //             IsMenuNameUniqueFunc: func(menuName string) (bool, error) {
@@ -59,7 +60,7 @@ type ServiceMock struct {
 	FindByIDFunc func(mn *domain.MenuInput) (*models.Menu, error)
 
 	// GetLatestMenuFunc mocks the GetLatestMenu method.
-	GetLatestMenuFunc func() (*models.Menu, error)
+	GetLatestMenuFunc func(tx *sql.Tx) (*models.Menu, error)
 
 	// IsMenuNameUniqueFunc mocks the IsMenuNameUnique method.
 	IsMenuNameUniqueFunc func(menuName string) (bool, error)
@@ -83,6 +84,8 @@ type ServiceMock struct {
 		}
 		// GetLatestMenu holds details about calls to the GetLatestMenu method.
 		GetLatestMenu []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
 		}
 		// IsMenuNameUnique holds details about calls to the IsMenuNameUnique method.
 		IsMenuNameUnique []struct {
@@ -186,24 +189,29 @@ func (mock *ServiceMock) FindByIDCalls() []struct {
 }
 
 // GetLatestMenu calls GetLatestMenuFunc.
-func (mock *ServiceMock) GetLatestMenu() (*models.Menu, error) {
+func (mock *ServiceMock) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
 	if mock.GetLatestMenuFunc == nil {
 		panic("ServiceMock.GetLatestMenuFunc: method is nil but Service.GetLatestMenu was just called")
 	}
 	callInfo := struct {
-	}{}
+		Tx *sql.Tx
+	}{
+		Tx: tx,
+	}
 	lockServiceMockGetLatestMenu.Lock()
 	mock.calls.GetLatestMenu = append(mock.calls.GetLatestMenu, callInfo)
 	lockServiceMockGetLatestMenu.Unlock()
-	return mock.GetLatestMenuFunc()
+	return mock.GetLatestMenuFunc(tx)
 }
 
 // GetLatestMenuCalls gets all the calls that were made to GetLatestMenu.
 // Check the length with:
 //     len(mockedService.GetLatestMenuCalls())
 func (mock *ServiceMock) GetLatestMenuCalls() []struct {
+	Tx *sql.Tx
 } {
 	var calls []struct {
+		Tx *sql.Tx
 	}
 	lockServiceMockGetLatestMenu.RLock()
 	calls = mock.calls.GetLatestMenu

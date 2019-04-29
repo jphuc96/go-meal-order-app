@@ -51,6 +51,6 @@ func (s *itemService) CheckItemExist(tx *sql.Tx, itemID int) (bool, error) {
 	return b, nil
 }
 
-func (s *itemService) GetAllItemsByMenuID(menuID int) ([]*models.Item, error) {
-	return models.Items(qm.Where("menu_id=?", menuID)).All(context.Background(), s.db)
+func (s *itemService) GetAllItemsByMenuID(tx *sql.Tx, menuID int) ([]*models.Item, error) {
+	return models.Items(qm.Where("menu_id=?", menuID)).All(context.Background(), tx)
 }

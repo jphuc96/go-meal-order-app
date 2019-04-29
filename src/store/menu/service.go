@@ -1,6 +1,8 @@
 package menu
 
 import (
+	"database/sql"
+
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 )
@@ -11,5 +13,5 @@ type Service interface {
 	Create(p *domain.MenuInput) (*models.Menu, error)
 	IsMenuNameUnique(menuName string) (bool, error)
 	FindByID(mn *domain.MenuInput) (*models.Menu, error)
-	GetLatestMenu() (*models.Menu, error)
+	GetLatestMenu(tx *sql.Tx) (*models.Menu, error)
 }

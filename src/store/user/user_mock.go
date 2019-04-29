@@ -15,8 +15,8 @@ var (
 	lockServiceMockExist       sync.RWMutex
 	lockServiceMockFind        sync.RWMutex
 	lockServiceMockFindAll     sync.RWMutex
+	lockServiceMockGetByID     sync.RWMutex
 	lockServiceMockUpdateToken sync.RWMutex
-	lockServiceMockGetByID sync.RWMutex
 )
 
 // Ensure, that ServiceMock does implement Service.
@@ -35,16 +35,17 @@ var _ Service = &ServiceMock{}
 //             ExistFunc: func(p *domain.CreateUserInput) (bool, error) {
 // 	               panic("mock out the Exist method")
 //             },
-//             FindFunc: func(p *domain.CreateUserInput) (*models.User, error) {
+//             FindFunc: func(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error) {
 // 	               panic("mock out the Find method")
 //             },
 //             FindAllFunc: func() ([]*models.User, error) {
 // 	               panic("mock out the FindAll method")
 //             },
-//             UpdateTokenFunc: func(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error {
-// 	               panic("mock out the UpdateToken method")
 //             GetByIDFunc: func(tx *sql.Tx, userID int) (*models.User, error) {
 // 	               panic("mock out the GetByID method")
+//             },
+//             UpdateTokenFunc: func(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error {
+// 	               panic("mock out the UpdateToken method")
 //             },
 //         }
 //
@@ -60,15 +61,16 @@ type ServiceMock struct {
 	ExistFunc func(p *domain.CreateUserInput) (bool, error)
 
 	// FindFunc mocks the Find method.
-	FindFunc func(p *domain.CreateUserInput) (*models.User, error)
+	FindFunc func(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error)
 
 	// FindAllFunc mocks the FindAll method.
 	FindAllFunc func() ([]*models.User, error)
 
-	// UpdateTokenFunc mocks the UpdateToken method.
-	UpdateTokenFunc func(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error
 	// GetByIDFunc mocks the GetByID method.
 	GetByIDFunc func(tx *sql.Tx, userID int) (*models.User, error)
+
+	// UpdateTokenFunc mocks the UpdateToken method.
+	UpdateTokenFunc func(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -86,11 +88,20 @@ type ServiceMock struct {
 		}
 		// Find holds details about calls to the Find method.
 		Find []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
 			// P is the p argument value.
 			P *domain.CreateUserInput
 		}
 		// FindAll holds details about calls to the FindAll method.
 		FindAll []struct {
+		}
+		// GetByID holds details about calls to the GetByID method.
+		GetByID []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
+			// UserID is the userID argument value.
+			UserID int
 		}
 		// UpdateToken holds details about calls to the UpdateToken method.
 		UpdateToken []struct {
@@ -100,12 +111,6 @@ type ServiceMock struct {
 			P *domain.CreateUserInput
 			// NewToken is the newToken argument value.
 			NewToken string
-		// GetByID holds details about calls to the GetByID method.
-		GetByID []struct {
-			// Tx is the tx argument value.
-			Tx *sql.Tx
-			// UserID is the userID argument value.
-			UserID int
 		}
 	}
 }
@@ -177,29 +182,33 @@ func (mock *ServiceMock) ExistCalls() []struct {
 }
 
 // Find calls FindFunc.
-func (mock *ServiceMock) Find(p *domain.CreateUserInput) (*models.User, error) {
+func (mock *ServiceMock) Find(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error) {
 	if mock.FindFunc == nil {
 		panic("ServiceMock.FindFunc: method is nil but Service.Find was just called")
 	}
 	callInfo := struct {
-		P *domain.CreateUserInput
+		Tx *sql.Tx
+		P  *domain.CreateUserInput
 	}{
-		P: p,
+		Tx: tx,
+		P:  p,
 	}
 	lockServiceMockFind.Lock()
 	mock.calls.Find = append(mock.calls.Find, callInfo)
 	lockServiceMockFind.Unlock()
-	return mock.FindFunc(p)
+	return mock.FindFunc(tx, p)
 }
 
 // FindCalls gets all the calls that were made to Find.
 // Check the length with:
 //     len(mockedService.FindCalls())
 func (mock *ServiceMock) FindCalls() []struct {
-	P *domain.CreateUserInput
+	Tx *sql.Tx
+	P  *domain.CreateUserInput
 } {
 	var calls []struct {
-		P *domain.CreateUserInput
+		Tx *sql.Tx
+		P  *domain.CreateUserInput
 	}
 	lockServiceMockFind.RLock()
 	calls = mock.calls.Find
@@ -230,6 +239,41 @@ func (mock *ServiceMock) FindAllCalls() []struct {
 	lockServiceMockFindAll.RLock()
 	calls = mock.calls.FindAll
 	lockServiceMockFindAll.RUnlock()
+	return calls
+}
+
+// GetByID calls GetByIDFunc.
+func (mock *ServiceMock) GetByID(tx *sql.Tx, userID int) (*models.User, error) {
+	if mock.GetByIDFunc == nil {
+		panic("ServiceMock.GetByIDFunc: method is nil but Service.GetByID was just called")
+	}
+	callInfo := struct {
+		Tx     *sql.Tx
+		UserID int
+	}{
+		Tx:     tx,
+		UserID: userID,
+	}
+	lockServiceMockGetByID.Lock()
+	mock.calls.GetByID = append(mock.calls.GetByID, callInfo)
+	lockServiceMockGetByID.Unlock()
+	return mock.GetByIDFunc(tx, userID)
+}
+
+// GetByIDCalls gets all the calls that were made to GetByID.
+// Check the length with:
+//     len(mockedService.GetByIDCalls())
+func (mock *ServiceMock) GetByIDCalls() []struct {
+	Tx     *sql.Tx
+	UserID int
+} {
+	var calls []struct {
+		Tx     *sql.Tx
+		UserID int
+	}
+	lockServiceMockGetByID.RLock()
+	calls = mock.calls.GetByID
+	lockServiceMockGetByID.RUnlock()
 	return calls
 }
 
@@ -269,37 +313,5 @@ func (mock *ServiceMock) UpdateTokenCalls() []struct {
 	lockServiceMockUpdateToken.RLock()
 	calls = mock.calls.UpdateToken
 	lockServiceMockUpdateToken.RUnlock()
-// GetByID calls GetByIDFunc.
-func (mock *ServiceMock) GetByID(tx *sql.Tx, userID int) (*models.User, error) {
-	if mock.GetByIDFunc == nil {
-		panic("ServiceMock.GetByIDFunc: method is nil but Service.GetByID was just called")
-	}
-	callInfo := struct {
-		Tx     *sql.Tx
-		UserID int
-	}{
-		Tx:     tx,
-		UserID: userID,
-	}
-	lockServiceMockGetByID.Lock()
-	mock.calls.GetByID = append(mock.calls.GetByID, callInfo)
-	lockServiceMockGetByID.Unlock()
-	return mock.GetByIDFunc(tx, userID)
-}
-
-// GetByIDCalls gets all the calls that were made to GetByID.
-// Check the length with:
-//     len(mockedService.GetByIDCalls())
-func (mock *ServiceMock) GetByIDCalls() []struct {
-	Tx     *sql.Tx
-	UserID int
-} {
-	var calls []struct {
-		Tx     *sql.Tx
-		UserID int
-	}
-	lockServiceMockGetByID.RLock()
-	calls = mock.calls.GetByID
-	lockServiceMockGetByID.RUnlock()
 	return calls
 }
