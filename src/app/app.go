@@ -15,7 +15,6 @@ import (
 // App struct for router and db
 type App struct {
 	Router  *mux.Router
-	Service *service.Service
 	Handler *handler.CoreHandler
 }
 
@@ -48,8 +47,8 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 	log.Println("password: " + dbConfig.Password)
 	log.Println("ssl mode: " + dbConfig.SSLMode)
 
-	a.Service = service.NewService(db)
-	a.Handler = handler.NewCoreHandler(a.Service, db)
+	svc := service.NewService(db)
+	a.Handler = handler.NewCoreHandler(svc, db)
 	a.Router = mux.NewRouter()
 	a.SetRouters()
 
@@ -58,7 +57,7 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 
 func (a *App) SetRouters() {
 	a.Router.HandleFunc("/auth/google/login-url", a.GetGoogleLoginURL).Methods("GET")
-	a.Router.HandleFunc("/auth/login/google", a.VerifyGoogleUserLogin).Methods("POST")
+	a.Router.HandleFunc("/auth/google/callback", a.VerifyGoogleUserLogin).Methods("GET")
 	a.Router.HandleFunc("/menus", a.GetLatestMenu).Methods("GET")
 	a.Router.HandleFunc("/menus", a.CreateMenu).Methods("POST")
 	a.Router.HandleFunc("/menus/{MenuID}/time", a.ModifyMenuTime).Methods("POST")
@@ -68,18 +67,17 @@ func (a *App) SetRouters() {
 	a.Router.HandleFunc("/menus/{MenuID}/users/{UserID}/orders", a.GetOrdersOfUser).Methods("GET")
 	a.Router.HandleFunc("/menus/{MenuID}/users/{UserID}/orders", a.CreateOrModifyOrder).Methods("POST")
 	a.Router.HandleFunc("/menus/{MenuID}/users/{UserID}/orders", a.CancelAllOrderOfUser).Methods("DELETE")
-	a.Router.HandleFunc("/menus/{MenuID}/pic", a.GetPeopleInCharge).Methods("GET")
-	a.Router.HandleFunc("/orders/{UserID}", a.AddPeopleInCharge).Methods("POST")
+	a.Router.HandleFunc("/menus/{MenuID}/people-in-charge", a.GetPeopleInCharge).Methods("GET")
 }
 
 func (a *App) GetGoogleLoginURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	a.Handler.GetGoogleLoginURL(w, r)
 }
 
 func (a *App) VerifyGoogleUserLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	a.Handler.VerifyGoogleUserLogin(w, r)
 }
 
 func (a *App) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
@@ -135,11 +133,6 @@ func (a *App) CancelAllOrderOfUser(w http.ResponseWriter, r *http.Request) {
 func (a *App) GetPeopleInCharge(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-}
-
-func (a *App) AddPeopleInCharge(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 }
 
 func (a *App) RunServer(host string) {

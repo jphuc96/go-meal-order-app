@@ -3,7 +3,6 @@ package order
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
@@ -61,15 +60,15 @@ func (os *orderService) Get(menuID string, userID string) ([]*domain.Item, error
 		return nil, err
 	}
 	if b == false {
-		return nil, errors.New(domain.MenuNotExist)
+		return nil, domain.MenuNotExist
 	}
 
 	b, err = models.Users(qm.Where("id=?", userID)).Exists(context.Background(), os.db)
 	if err != nil {
 		return nil, err
 	}
-	if b == false {
-		return nil, errors.New(domain.UserNotExist)
+	if !b {
+		return nil, domain.UserNotExist
 	}
 
 	orders, err := models.Orders(qm.Where("user_id=?", userID)).All(context.Background(), os.db)

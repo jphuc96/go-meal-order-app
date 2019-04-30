@@ -15,9 +15,9 @@
         }
         ```
 
-#### /auth/login/google
+#### /auth/google/callback
 
-- POST: Verify user login
+- GET: Verify user login
     - Request:
         ```json
         {

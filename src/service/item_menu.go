@@ -2,7 +2,6 @@ package service
 
 import (
 	"database/sql"
-	"errors"
 
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
@@ -17,7 +16,7 @@ func (s *Service) AddItems(tx *sql.Tx, items *domain.ItemInput, menuID int) ([]*
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.New(domain.MenuNotExist)
+		return nil, domain.MenuNotExist
 	}
 
 	for _, it := range items.Items {

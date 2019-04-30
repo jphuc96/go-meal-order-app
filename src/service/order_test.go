@@ -6,11 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"git.d.foundation/datcom/backend/src/domain"
-
-	"git.d.foundation/datcom/backend/src/store/order"
-
 	"git.d.foundation/datcom/backend/models"
+	"git.d.foundation/datcom/backend/src/domain"
+	"git.d.foundation/datcom/backend/src/store/order"
 )
 
 func TestService_AddOrder(t *testing.T) {

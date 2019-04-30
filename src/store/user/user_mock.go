@@ -4,15 +4,18 @@
 package user
 
 import (
+	"database/sql"
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 	"sync"
 )
 
 var (
-	lockServiceMockCreate  sync.RWMutex
-	lockServiceMockFind    sync.RWMutex
-	lockServiceMockFindAll sync.RWMutex
+	lockServiceMockCreate      sync.RWMutex
+	lockServiceMockExist       sync.RWMutex
+	lockServiceMockFind        sync.RWMutex
+	lockServiceMockFindAll     sync.RWMutex
+	lockServiceMockUpdateToken sync.RWMutex
 )
 
 // Ensure, that ServiceMock does implement Service.
@@ -25,14 +28,20 @@ var _ Service = &ServiceMock{}
 //
 //         // make and configure a mocked Service
 //         mockedService := &ServiceMock{
-//             CreateFunc: func(p *domain.UserInput) (*models.User, error) {
+//             CreateFunc: func(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error) {
 // 	               panic("mock out the Create method")
 //             },
-//             FindFunc: func(p *domain.UserInput) (*models.User, error) {
+//             ExistFunc: func(p *domain.CreateUserInput) (bool, error) {
+// 	               panic("mock out the Exist method")
+//             },
+//             FindFunc: func(p *domain.CreateUserInput) (*models.User, error) {
 // 	               panic("mock out the Find method")
 //             },
 //             FindAllFunc: func() ([]*models.User, error) {
 // 	               panic("mock out the FindAll method")
+//             },
+//             UpdateTokenFunc: func(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error {
+// 	               panic("mock out the UpdateToken method")
 //             },
 //         }
 //
@@ -42,56 +51,82 @@ var _ Service = &ServiceMock{}
 //     }
 type ServiceMock struct {
 	// CreateFunc mocks the Create method.
-	CreateFunc func(p *domain.UserInput) (*models.User, error)
+	CreateFunc func(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error)
+
+	// ExistFunc mocks the Exist method.
+	ExistFunc func(p *domain.CreateUserInput) (bool, error)
 
 	// FindFunc mocks the Find method.
-	FindFunc func(p *domain.UserInput) (*models.User, error)
+	FindFunc func(p *domain.CreateUserInput) (*models.User, error)
 
 	// FindAllFunc mocks the FindAll method.
 	FindAllFunc func() ([]*models.User, error)
+
+	// UpdateTokenFunc mocks the UpdateToken method.
+	UpdateTokenFunc func(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error
 
 	// calls tracks calls to the methods.
 	calls struct {
 		// Create holds details about calls to the Create method.
 		Create []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
 			// P is the p argument value.
-			P *domain.UserInput
+			P *domain.CreateUserInput
+		}
+		// Exist holds details about calls to the Exist method.
+		Exist []struct {
+			// P is the p argument value.
+			P *domain.CreateUserInput
 		}
 		// Find holds details about calls to the Find method.
 		Find []struct {
 			// P is the p argument value.
-			P *domain.UserInput
+			P *domain.CreateUserInput
 		}
 		// FindAll holds details about calls to the FindAll method.
 		FindAll []struct {
+		}
+		// UpdateToken holds details about calls to the UpdateToken method.
+		UpdateToken []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
+			// P is the p argument value.
+			P *domain.CreateUserInput
+			// NewToken is the newToken argument value.
+			NewToken string
 		}
 	}
 }
 
 // Create calls CreateFunc.
-func (mock *ServiceMock) Create(p *domain.UserInput) (*models.User, error) {
+func (mock *ServiceMock) Create(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error) {
 	if mock.CreateFunc == nil {
 		panic("ServiceMock.CreateFunc: method is nil but Service.Create was just called")
 	}
 	callInfo := struct {
-		P *domain.UserInput
+		Tx *sql.Tx
+		P  *domain.CreateUserInput
 	}{
-		P: p,
+		Tx: tx,
+		P:  p,
 	}
 	lockServiceMockCreate.Lock()
 	mock.calls.Create = append(mock.calls.Create, callInfo)
 	lockServiceMockCreate.Unlock()
-	return mock.CreateFunc(p)
+	return mock.CreateFunc(tx, p)
 }
 
 // CreateCalls gets all the calls that were made to Create.
 // Check the length with:
 //     len(mockedService.CreateCalls())
 func (mock *ServiceMock) CreateCalls() []struct {
-	P *domain.UserInput
+	Tx *sql.Tx
+	P  *domain.CreateUserInput
 } {
 	var calls []struct {
-		P *domain.UserInput
+		Tx *sql.Tx
+		P  *domain.CreateUserInput
 	}
 	lockServiceMockCreate.RLock()
 	calls = mock.calls.Create
@@ -99,13 +134,44 @@ func (mock *ServiceMock) CreateCalls() []struct {
 	return calls
 }
 
+// Exist calls ExistFunc.
+func (mock *ServiceMock) Exist(p *domain.CreateUserInput) (bool, error) {
+	if mock.ExistFunc == nil {
+		panic("ServiceMock.ExistFunc: method is nil but Service.Exist was just called")
+	}
+	callInfo := struct {
+		P *domain.CreateUserInput
+	}{
+		P: p,
+	}
+	lockServiceMockExist.Lock()
+	mock.calls.Exist = append(mock.calls.Exist, callInfo)
+	lockServiceMockExist.Unlock()
+	return mock.ExistFunc(p)
+}
+
+// ExistCalls gets all the calls that were made to Exist.
+// Check the length with:
+//     len(mockedService.ExistCalls())
+func (mock *ServiceMock) ExistCalls() []struct {
+	P *domain.CreateUserInput
+} {
+	var calls []struct {
+		P *domain.CreateUserInput
+	}
+	lockServiceMockExist.RLock()
+	calls = mock.calls.Exist
+	lockServiceMockExist.RUnlock()
+	return calls
+}
+
 // Find calls FindFunc.
-func (mock *ServiceMock) Find(p *domain.UserInput) (*models.User, error) {
+func (mock *ServiceMock) Find(p *domain.CreateUserInput) (*models.User, error) {
 	if mock.FindFunc == nil {
 		panic("ServiceMock.FindFunc: method is nil but Service.Find was just called")
 	}
 	callInfo := struct {
-		P *domain.UserInput
+		P *domain.CreateUserInput
 	}{
 		P: p,
 	}
@@ -119,10 +185,10 @@ func (mock *ServiceMock) Find(p *domain.UserInput) (*models.User, error) {
 // Check the length with:
 //     len(mockedService.FindCalls())
 func (mock *ServiceMock) FindCalls() []struct {
-	P *domain.UserInput
+	P *domain.CreateUserInput
 } {
 	var calls []struct {
-		P *domain.UserInput
+		P *domain.CreateUserInput
 	}
 	lockServiceMockFind.RLock()
 	calls = mock.calls.Find
@@ -153,5 +219,44 @@ func (mock *ServiceMock) FindAllCalls() []struct {
 	lockServiceMockFindAll.RLock()
 	calls = mock.calls.FindAll
 	lockServiceMockFindAll.RUnlock()
+	return calls
+}
+
+// UpdateToken calls UpdateTokenFunc.
+func (mock *ServiceMock) UpdateToken(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error {
+	if mock.UpdateTokenFunc == nil {
+		panic("ServiceMock.UpdateTokenFunc: method is nil but Service.UpdateToken was just called")
+	}
+	callInfo := struct {
+		Tx       *sql.Tx
+		P        *domain.CreateUserInput
+		NewToken string
+	}{
+		Tx:       tx,
+		P:        p,
+		NewToken: newToken,
+	}
+	lockServiceMockUpdateToken.Lock()
+	mock.calls.UpdateToken = append(mock.calls.UpdateToken, callInfo)
+	lockServiceMockUpdateToken.Unlock()
+	return mock.UpdateTokenFunc(tx, p, newToken)
+}
+
+// UpdateTokenCalls gets all the calls that were made to UpdateToken.
+// Check the length with:
+//     len(mockedService.UpdateTokenCalls())
+func (mock *ServiceMock) UpdateTokenCalls() []struct {
+	Tx       *sql.Tx
+	P        *domain.CreateUserInput
+	NewToken string
+} {
+	var calls []struct {
+		Tx       *sql.Tx
+		P        *domain.CreateUserInput
+		NewToken string
+	}
+	lockServiceMockUpdateToken.RLock()
+	calls = mock.calls.UpdateToken
+	lockServiceMockUpdateToken.RUnlock()
 	return calls
 }

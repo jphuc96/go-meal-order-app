@@ -3,8 +3,11 @@ module git.d.foundation/datcom/backend
 go 1.12
 
 require (
+	github.com/BurntSushi/toml v0.3.1
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/gorilla/mux v1.7.1
+	github.com/gorilla/sessions v1.1.3 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/lib/pq v1.1.0
 	github.com/mattn/go-colorable v0.1.1 // indirect
@@ -14,5 +17,6 @@ require (
 	github.com/volatiletech/inflect v0.0.0-20170731032912-e7201282ae8d // indirect
 	github.com/volatiletech/null v8.0.0+incompatible
 	github.com/volatiletech/sqlboiler v3.2.0+incompatible
+	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 )
