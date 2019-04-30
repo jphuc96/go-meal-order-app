@@ -10,7 +10,7 @@ type OrderUser struct {
 }
 
 // GSOItems is get summary output items handler struct
-type MenuItems struct {
+type MenuItem struct {
 	ID       int         `json:"id,omitempty"`
 	ItemName string      `json:"item_name,omitempty"`
 	Users    []OrderUser `json:"users,omitempty"`
@@ -24,6 +24,6 @@ type MenuPIC struct {
 
 type RespMenu struct {
 	Menu           *models.Menu `json:"menu,omitempty"`
-	Items          []MenuItems  `json:"items,omitempty"`
+	Items          []MenuItem   `json:"items,omitempty"`
 	PeopleInCharge []MenuPIC    `json:"people_in_charge,omitempty"`
 }

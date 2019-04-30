@@ -39,8 +39,8 @@ func (s *Service) GetOrdersByMenuAndUser(menuID string, userID string) ([]*domai
 	return items, nil
 }
 
-func (s *Service) GetOrdersByItem(tx *sql.Tx, itemID int) ([]*domain.OrderUser, error) {
-	orderUser := make([]*domain.OrderUser, 0)
+func (s *Service) GetOrderUsersByItem(tx *sql.Tx, itemID int) ([]*models.User, error) {
+	orderUser := make([]*models.User, 0)
 	orders, err := s.Store.OrderStore.GetAllOrdersByItemID(tx, itemID)
 	if err != nil {
 		return nil, err
@@ -51,10 +51,7 @@ func (s *Service) GetOrdersByItem(tx *sql.Tx, itemID int) ([]*domain.OrderUser, 
 		if err != nil {
 			return nil, err
 		}
-		orderUser = append(orderUser, &domain.OrderUser{
-			ID:       user.ID,
-			UserName: user.Name,
-		})
+		orderUser = append(orderUser, user)
 	}
 
 	return orderUser, nil

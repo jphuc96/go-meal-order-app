@@ -1,7 +1,6 @@
 package handler
 
 import (
-	// "fmt"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -32,60 +31,62 @@ func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 
 	menuItems, err := c.service.GetAllItemsByMenuID(tx, latestMenu.ID)
 	if err != nil {
+		tx.Rollback()
 		handleHTTPError(err, http.StatusInternalServerError, w)
 		return
 	}
 
-	respItems := make([]domain.MenuItems, 0)
+	respItems := make([]domain.MenuItem, 0)
 
 	for _, item := range menuItems {
-		// users, err := c.service.GetOrdersByItem(tx, item.ID)
+		users, err := c.service.GetOrderUsersByItem(tx, item.ID)
+		if err != nil {
+			tx.Rollback()
+			handleHTTPError(err, http.StatusInternalServerError, w)
+			return
+		}
 
-		respItems = append(respItems, &domain.MenuItems{
+		respUser := make([]domain.OrderUser, 0)
+		for _, user := range users {
+			respUser = append(respUser, domain.OrderUser{
+				ID:       user.ID,
+				UserName: user.Name,
+			})
+		}
+
+		respItems = append(respItems, domain.MenuItem{
 			ID:       item.ID,
 			ItemName: item.ItemName,
+			Users:    respUser,
 		})
 	}
 
-	respMenu.Items = append(respMenu.Items, respItems)
+	menuPIC, err := c.service.GetPICByMenuID(tx, latestMenu.ID)
+	if err != nil {
+		tx.Rollback()
+		handleHTTPError(err, http.StatusInternalServerError, w)
+		return
+	}
+
+	respPIC := make([]domain.MenuPIC, 0)
+	for _, pic := range menuPIC {
+		user, err := c.service.GetUserbyPIC(tx, pic)
+		if err != nil {
+			tx.Rollback()
+			handleHTTPError(err, http.StatusInternalServerError, w)
+			return
+		}
+		respPIC = append(respPIC, domain.MenuPIC{
+			USerID:   user.ID,
+			UserName: user.Name,
+		})
+	}
+
+	respMenu.Items = respItems
 	respMenu.Menu = latestMenu
+	respMenu.PeopleInCharge = respPIC
+
+	tx.Commit()
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(&respMenu)
-	// json.NewEncoder(w).Encode()
-	// mns, err := c.service.Store.ItemStore.GetAllItemsByMenuID(menuresp.Menu.ID)
-	// if err != nil {
-	// 	handleHTTPError(err, http.StatusInternalServerError, w)
-	// 	return
-	// }
-
-	// tx, err := c.db.BeginTx(context.Background(), nil)
-	// for _, mn := range mns {
-	// 	orders, err := c.service.Store.OrderStore.GetAllOrdersByItemID(tx, mn.ID)
-	// 	if err != nil {
-	// 		tx.Rollback()
-	// 		handleHTTPError(err, http.StatusInternalServerError, w)
-	// 		return
-	// 	}
-
-	// 	users := []domain.GSOUser{}
-	// 	for _, order := range orders {
-	// 		user, err := c.service.Store.UserStore.GetByID(tx, order.UserID)
-	// 		if err != nil {
-	// 			handleHTTPError(err, http.StatusInternalServerError, w)
-	// 			return
-	// 		}
-	// 		users = append(users, domain.GSOUser{ID: user.ID, UserName: user.Name})
-	// 	}
-	// 	menuresp.Items = append(menuresp.Items, domain.GSOItem{ID: mn.ID, ItemName: mn.ItemName, Users: users})
-	// }
-	// tx.Commit()
-
-	// resp, err := json.Marshal(menuresp)
-	// if err != nil {
-	// 	handleHTTPError(err, http.StatusInternalServerError, w)
-	// 	return
-	// }
-
-	// w.WriteHeader(http.StatusOK)
-	// w.Write(resp)
 }

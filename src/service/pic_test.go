@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 	"reflect"
 	"testing"
@@ -15,7 +16,8 @@ func TestService_AddPIC(t *testing.T) {
 		PIC pic.ServiceMock
 	}
 	type args struct {
-		p *domain.PICInput
+		tx *sql.Tx
+		p  *domain.PICInput
 	}
 	tests := []struct {
 		name    string
@@ -29,10 +31,10 @@ func TestService_AddPIC(t *testing.T) {
 			name: "when AddPIC() success",
 			fields: fields{
 				pic.ServiceMock{
-					ExistFunc: func(o *domain.PICInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.PICInput) (bool, error) {
 						return false, nil
 					},
-					AddFunc: func(o *domain.PICInput) (*models.PeopleInCharge, error) {
+					AddFunc: func(tx *sql.Tx, o *domain.PICInput) (*models.PeopleInCharge, error) {
 						return nil, nil
 					},
 				},
@@ -43,7 +45,7 @@ func TestService_AddPIC(t *testing.T) {
 			name: "when AddPIC() failed",
 			fields: fields{
 				pic.ServiceMock{
-					ExistFunc: func(o *domain.PICInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.PICInput) (bool, error) {
 						return true, nil
 					},
 				},
@@ -58,7 +60,7 @@ func TestService_AddPIC(t *testing.T) {
 					PICStore: &tt.fields.PIC,
 				},
 			}
-			got, err := s.AddPIC(tt.args.p)
+			got, err := s.AddPIC(tt.args.tx, tt.args.p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.AddPIC() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -75,6 +77,7 @@ func TestService_GetPICByMenuID(t *testing.T) {
 		PIC pic.ServiceMock
 	}
 	type args struct {
+		tx     *sql.Tx
 		menuID int
 	}
 	tests := []struct {
@@ -89,7 +92,7 @@ func TestService_GetPICByMenuID(t *testing.T) {
 			name: "when GetPIC() success",
 			fields: fields{
 				pic.ServiceMock{
-					GetByMenuIDFunc: func(menuID int) ([]*models.PeopleInCharge, error) {
+					GetByMenuIDFunc: func(tx *sql.Tx, menuID int) ([]*models.PeopleInCharge, error) {
 						return nil, nil
 					},
 				},
@@ -100,7 +103,7 @@ func TestService_GetPICByMenuID(t *testing.T) {
 			name: "when GetPIC() failed",
 			fields: fields{
 				pic.ServiceMock{
-					GetByMenuIDFunc: func(menuID int) ([]*models.PeopleInCharge, error) {
+					GetByMenuIDFunc: func(tx *sql.Tx, menuID int) ([]*models.PeopleInCharge, error) {
 						return nil, errors.New("Failed to get")
 					},
 				},
@@ -115,7 +118,7 @@ func TestService_GetPICByMenuID(t *testing.T) {
 					PICStore: &tt.fields.PIC,
 				},
 			}
-			got, err := s.GetPICByMenuID(tt.args.menuID)
+			got, err := s.GetPICByMenuID(tt.args.tx, tt.args.menuID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.GetPICByMenuID() error = %v, wantErr %v", err, tt.wantErr)
 				return

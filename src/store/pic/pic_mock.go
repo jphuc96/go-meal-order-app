@@ -4,6 +4,7 @@
 package pic
 
 import (
+	"database/sql"
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 	"sync"
@@ -25,13 +26,13 @@ var _ Service = &ServiceMock{}
 //
 //         // make and configure a mocked Service
 //         mockedService := &ServiceMock{
-//             AddFunc: func(p *domain.PICInput) (*models.PeopleInCharge, error) {
+//             AddFunc: func(tx *sql.Tx, p *domain.PICInput) (*models.PeopleInCharge, error) {
 // 	               panic("mock out the Add method")
 //             },
-//             ExistFunc: func(p *domain.PICInput) (bool, error) {
+//             ExistFunc: func(tx *sql.Tx, p *domain.PICInput) (bool, error) {
 // 	               panic("mock out the Exist method")
 //             },
-//             GetByMenuIDFunc: func(menuID int) ([]*models.PeopleInCharge, error) {
+//             GetByMenuIDFunc: func(tx *sql.Tx, menuID int) ([]*models.PeopleInCharge, error) {
 // 	               panic("mock out the GetByMenuID method")
 //             },
 //         }
@@ -42,28 +43,34 @@ var _ Service = &ServiceMock{}
 //     }
 type ServiceMock struct {
 	// AddFunc mocks the Add method.
-	AddFunc func(p *domain.PICInput) (*models.PeopleInCharge, error)
+	AddFunc func(tx *sql.Tx, p *domain.PICInput) (*models.PeopleInCharge, error)
 
 	// ExistFunc mocks the Exist method.
-	ExistFunc func(p *domain.PICInput) (bool, error)
+	ExistFunc func(tx *sql.Tx, p *domain.PICInput) (bool, error)
 
 	// GetByMenuIDFunc mocks the GetByMenuID method.
-	GetByMenuIDFunc func(menuID int) ([]*models.PeopleInCharge, error)
+	GetByMenuIDFunc func(tx *sql.Tx, menuID int) ([]*models.PeopleInCharge, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
 		// Add holds details about calls to the Add method.
 		Add []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
 			// P is the p argument value.
 			P *domain.PICInput
 		}
 		// Exist holds details about calls to the Exist method.
 		Exist []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
 			// P is the p argument value.
 			P *domain.PICInput
 		}
 		// GetByMenuID holds details about calls to the GetByMenuID method.
 		GetByMenuID []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
 			// MenuID is the menuID argument value.
 			MenuID int
 		}
@@ -71,29 +78,33 @@ type ServiceMock struct {
 }
 
 // Add calls AddFunc.
-func (mock *ServiceMock) Add(p *domain.PICInput) (*models.PeopleInCharge, error) {
+func (mock *ServiceMock) Add(tx *sql.Tx, p *domain.PICInput) (*models.PeopleInCharge, error) {
 	if mock.AddFunc == nil {
 		panic("ServiceMock.AddFunc: method is nil but Service.Add was just called")
 	}
 	callInfo := struct {
-		P *domain.PICInput
+		Tx *sql.Tx
+		P  *domain.PICInput
 	}{
-		P: p,
+		Tx: tx,
+		P:  p,
 	}
 	lockServiceMockAdd.Lock()
 	mock.calls.Add = append(mock.calls.Add, callInfo)
 	lockServiceMockAdd.Unlock()
-	return mock.AddFunc(p)
+	return mock.AddFunc(tx, p)
 }
 
 // AddCalls gets all the calls that were made to Add.
 // Check the length with:
 //     len(mockedService.AddCalls())
 func (mock *ServiceMock) AddCalls() []struct {
-	P *domain.PICInput
+	Tx *sql.Tx
+	P  *domain.PICInput
 } {
 	var calls []struct {
-		P *domain.PICInput
+		Tx *sql.Tx
+		P  *domain.PICInput
 	}
 	lockServiceMockAdd.RLock()
 	calls = mock.calls.Add
@@ -102,29 +113,33 @@ func (mock *ServiceMock) AddCalls() []struct {
 }
 
 // Exist calls ExistFunc.
-func (mock *ServiceMock) Exist(p *domain.PICInput) (bool, error) {
+func (mock *ServiceMock) Exist(tx *sql.Tx, p *domain.PICInput) (bool, error) {
 	if mock.ExistFunc == nil {
 		panic("ServiceMock.ExistFunc: method is nil but Service.Exist was just called")
 	}
 	callInfo := struct {
-		P *domain.PICInput
+		Tx *sql.Tx
+		P  *domain.PICInput
 	}{
-		P: p,
+		Tx: tx,
+		P:  p,
 	}
 	lockServiceMockExist.Lock()
 	mock.calls.Exist = append(mock.calls.Exist, callInfo)
 	lockServiceMockExist.Unlock()
-	return mock.ExistFunc(p)
+	return mock.ExistFunc(tx, p)
 }
 
 // ExistCalls gets all the calls that were made to Exist.
 // Check the length with:
 //     len(mockedService.ExistCalls())
 func (mock *ServiceMock) ExistCalls() []struct {
-	P *domain.PICInput
+	Tx *sql.Tx
+	P  *domain.PICInput
 } {
 	var calls []struct {
-		P *domain.PICInput
+		Tx *sql.Tx
+		P  *domain.PICInput
 	}
 	lockServiceMockExist.RLock()
 	calls = mock.calls.Exist
@@ -133,28 +148,32 @@ func (mock *ServiceMock) ExistCalls() []struct {
 }
 
 // GetByMenuID calls GetByMenuIDFunc.
-func (mock *ServiceMock) GetByMenuID(menuID int) ([]*models.PeopleInCharge, error) {
+func (mock *ServiceMock) GetByMenuID(tx *sql.Tx, menuID int) ([]*models.PeopleInCharge, error) {
 	if mock.GetByMenuIDFunc == nil {
 		panic("ServiceMock.GetByMenuIDFunc: method is nil but Service.GetByMenuID was just called")
 	}
 	callInfo := struct {
+		Tx     *sql.Tx
 		MenuID int
 	}{
+		Tx:     tx,
 		MenuID: menuID,
 	}
 	lockServiceMockGetByMenuID.Lock()
 	mock.calls.GetByMenuID = append(mock.calls.GetByMenuID, callInfo)
 	lockServiceMockGetByMenuID.Unlock()
-	return mock.GetByMenuIDFunc(menuID)
+	return mock.GetByMenuIDFunc(tx, menuID)
 }
 
 // GetByMenuIDCalls gets all the calls that were made to GetByMenuID.
 // Check the length with:
 //     len(mockedService.GetByMenuIDCalls())
 func (mock *ServiceMock) GetByMenuIDCalls() []struct {
+	Tx     *sql.Tx
 	MenuID int
 } {
 	var calls []struct {
+		Tx     *sql.Tx
 		MenuID int
 	}
 	lockServiceMockGetByMenuID.RLock()

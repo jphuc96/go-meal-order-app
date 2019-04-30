@@ -21,13 +21,13 @@ func NewService(db *sql.DB) Service {
 	}
 }
 
-func (pics *picService) Add(p *domain.PICInput) (*models.PeopleInCharge, error) {
+func (pics *picService) Add(tx *sql.Tx, p *domain.PICInput) (*models.PeopleInCharge, error) {
 	people := &models.PeopleInCharge{
 		UserID: p.UserID,
 		MenuID: p.MenuID,
 	}
 
-	err := people.Insert(context.Background(), pics.db, boil.Infer())
+	err := people.Insert(context.Background(), tx, boil.Infer())
 	if err != nil {
 		return nil, err
 	}
@@ -35,8 +35,8 @@ func (pics *picService) Add(p *domain.PICInput) (*models.PeopleInCharge, error) 
 	return people, nil
 }
 
-func (pics *picService) GetByMenuID(menuID int) ([]*models.PeopleInCharge, error) {
-	people, err := models.PeopleInCharges(qm.Where("menu_id=?", menuID)).All(context.Background(), pics.db)
+func (pics *picService) GetByMenuID(tx *sql.Tx, menuID int) ([]*models.PeopleInCharge, error) {
+	people, err := models.PeopleInCharges(qm.Where("menu_id=?", menuID)).All(context.Background(), tx)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +53,8 @@ func (pics *picService) GetByMenuID(menuID int) ([]*models.PeopleInCharge, error
 	return returnPeople, nil
 }
 
-func (pics *picService) Exist(p *domain.PICInput) (bool, error) {
-	b, err := models.PeopleInCharges(qm.Where("user_id=? AND menu_id=?", p.UserID, p.MenuID)).Exists(context.Background(), pics.db)
+func (pics *picService) Exist(tx *sql.Tx, p *domain.PICInput) (bool, error) {
+	b, err := models.PeopleInCharges(qm.Where("user_id=? AND menu_id=?", p.UserID, p.MenuID)).Exists(context.Background(), tx)
 	if err != nil {
 		return false, err
 	}
