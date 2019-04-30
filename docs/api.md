@@ -1,5 +1,29 @@
 ## Lunch Order REST API
 
+#### /auth/google
+- GET: Verify access
+    - Request:
+        ```json
+        {
+            "email" : "token",
+            "token" : "string"
+        }
+        ```
+    - Response:
+        - status code: 200(OK) / 401(Unauthorized)
+
+#### /auth/google/logout
+- GET: Logout 
+    - Request:
+        ```json
+        {
+            "email" : "token",
+            "token" : "string"
+        }
+        ```
+    - Response:
+        - status code: 200
+
 #### /auth/google/login-url
 
 - GET: Generate Google Login URL
@@ -11,6 +35,7 @@
         ```json
         {
             "redirect_url" : "string",
+            "token" : "string",
             "client_id" : "string",
         }
         ```
@@ -21,29 +46,17 @@
     - Request:
         ```json
         {
-            "name" : "string",
-            "google_id" : "string",
             "email" : "string",
-            "device_token" : "string",
-            "device_type" : "string"
+            "token" : "string",
         }
         ```
     - Response:
         ```json
         {
-            "auth_info" : {
-                "name" : "string",
-                "google_id" : "string",
-                "email" : "string",
-                "device_token" : "string",
-                "device_type" : "string"
-            },
-            "users" : {
-                "id" : 0,
-                "name" : "string",
-                "email" : "string",
-                "token" : "string"
-            }
+            "id" : 0,
+            "name" : "string",
+            "email" : "string",
+            "token" : "string"
         }
         ```
 
@@ -77,6 +90,12 @@
                     ]
                 }
             ],
+            "people_in_charge" : [
+                {
+                    "user_id" : 0,
+                    "user_name" : "string"
+                }
+            ]
         }
         ```
 
@@ -167,35 +186,6 @@
         }
         ```
 
-#### /menus/{MenuID}/summary
-
-- GET: Get menu summary (items, members, quantity)
-    - Request:
-        ```json
-        {}
-        ```
-    - Response:
-        ```json
-        {
-            "menu" : {
-                "deadline" : "string",
-                "payment_reminder" : "string",
-            },
-            "items" : [
-                {
-                    "id" : 0,
-                    "item_name" : "string",
-                    "users": [
-                        {
-                            "id": 0,
-                            "name": "string"
-                        }
-                    ]
-                }
-            ],    
-        }
-        ```
-
 #### /menus/{MenuID}/users/{UserID}/orders
 
 - GET: Get orders of an user
@@ -250,7 +240,7 @@
                   
         }
         ```
-#### /menus/{MenuID}/pic
+#### /menus/{MenuID}/people-in-charge
 
 - GET: Get people in charge of the menu
     - Request:

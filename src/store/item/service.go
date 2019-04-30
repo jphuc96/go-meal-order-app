@@ -13,4 +13,5 @@ type Service interface {
 	FindByID(tx *sql.Tx, itemID int) (*models.Item, error)
 	Delete(tx *sql.Tx, i *models.Item) error
 	CheckItemExist(tx *sql.Tx, itemID int) (bool, error)
+	GetAllItemsByMenuID(tx *sql.Tx, menuID int) ([]*models.Item, error)
 }

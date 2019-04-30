@@ -52,7 +52,7 @@ func (c *CoreHandler) VerifyGoogleUserLogin(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	// Check user in db
-	dbUser, _ := c.service.GetUserByEmail(googleUser.Email)
+	dbUser, _ := c.service.GetUserByEmail(tx, googleUser.Email)
 	if dbUser != nil {
 		if newToken[0] != dbUser.Token {
 			// If logged out or login in new device, update new token to record
@@ -66,14 +66,15 @@ func (c *CoreHandler) VerifyGoogleUserLogin(w http.ResponseWriter, r *http.Reque
 				handleHTTPError(err, http.StatusInternalServerError, w)
 				return
 			}
-			tx.Commit()
-			dbUser, err = c.service.GetUserByEmail(googleUser.Email)
+			dbUser, err = c.service.GetUserByEmail(tx, googleUser.Email)
 			if err != nil {
+				tx.Rollback()
 				handleHTTPError(err, http.StatusInternalServerError, w)
 				return
 			}
 
 		}
+		tx.Commit()
 		json.NewEncoder(w).Encode(domain.UserOutputMapping(dbUser))
 		return
 	}

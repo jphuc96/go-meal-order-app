@@ -37,3 +37,7 @@ func (s *Service) AddItems(tx *sql.Tx, items *domain.ItemInput, menuID int) ([]*
 
 	return list, err
 }
+
+func (s *Service) GetAllItemsByMenuID(tx *sql.Tx, menuID int) ([]*models.Item, error) {
+	return s.Store.ItemStore.GetAllItemsByMenuID(tx, menuID)
+}

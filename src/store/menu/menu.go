@@ -23,7 +23,7 @@ func NewService(db *sql.DB) Service {
 	}
 }
 
-func mapMenuInputToModel(m *domain.CreateMenuInput) *models.Menu {
+func mapMenuInputToModel(m *domain.MenuInput) *models.Menu {
 	return &models.Menu{
 		ID:              m.ID,
 		OwnerID:         m.OwnerID,
@@ -41,7 +41,7 @@ func (s *menuService) CheckMenuExist(menuID int) (bool, error) {
 }
 
 //Create function
-func (mn *menuService) Create(p *domain.CreateMenuInput) (*models.Menu, error) {
+func (mn *menuService) Create(p *domain.MenuInput) (*models.Menu, error) {
 
 	m := mapMenuInputToModel(p)
 	tx, err := mn.db.BeginTx(context.Background(), nil)
@@ -59,4 +59,13 @@ func (mn *menuService) Create(p *domain.CreateMenuInput) (*models.Menu, error) {
 
 func (mn *menuService) IsMenuNameUnique(menuName string) (bool, error) {
 	return models.Menus(qm.Where("menu_name=?", menuName)).Exists(context.Background(), mn.db)
+}
+
+func (s *menuService) FindByID(mn *domain.MenuInput) (*models.Menu, error) {
+	m := mapMenuInputToModel(mn)
+	return models.FindMenu(context.Background(), s.db, m.ID)
+}
+
+func (s *menuService) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
+	return models.Menus(qm.OrderBy("created_at DESC")).One(context.Background(), tx)
 }

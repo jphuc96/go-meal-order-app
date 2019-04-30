@@ -15,7 +15,7 @@ func TestService_CreateMenu(t *testing.T) {
 		Menu menu.ServiceMock
 	}
 	type args struct {
-		p *domain.CreateMenuInput
+		p *domain.MenuInput
 	}
 	tests := []struct {
 		name    string
@@ -32,13 +32,13 @@ func TestService_CreateMenu(t *testing.T) {
 					IsMenuNameUniqueFunc: func(menuName string) (bool, error) {
 						return false, nil
 					},
-					CreateFunc: func(p *domain.CreateMenuInput) (*models.Menu, error) {
+					CreateFunc: func(p *domain.MenuInput) (*models.Menu, error) {
 						return nil, nil
 					},
 				},
 			},
 			args: args{
-				&domain.CreateMenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
+				&domain.MenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
 			},
 			want:    &models.Menu{OwnerID: 0, MenuName: "0", CreatedAt: time.Now(), Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
 			wantErr: false,
@@ -53,7 +53,7 @@ func TestService_CreateMenu(t *testing.T) {
 				},
 			},
 			args: args{
-				&domain.CreateMenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
+				&domain.MenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
 			},
 			want:    nil,
 			wantErr: true,
@@ -68,7 +68,7 @@ func TestService_CreateMenu(t *testing.T) {
 				},
 			},
 			args: args{
-				&domain.CreateMenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
+				&domain.MenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
 			},
 			want:    nil,
 			wantErr: true,
@@ -79,13 +79,13 @@ func TestService_CreateMenu(t *testing.T) {
 				IsMenuNameUniqueFunc: func(menuName string) (bool, error) {
 					return false, nil
 				},
-				CreateFunc: func(p *domain.CreateMenuInput) (*models.Menu, error) {
+				CreateFunc: func(p *domain.MenuInput) (*models.Menu, error) {
 					return nil, errors.New("Cannot insert menu")
 				},
 			},
 			},
 			args: args{
-				&domain.CreateMenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
+				&domain.MenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
 			},
 			want:    nil,
 			wantErr: true,

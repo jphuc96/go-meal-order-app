@@ -33,8 +33,8 @@ func (s *Service) GetAllUser() ([]*models.User, error) {
 	return u, err
 }
 
-func (s *Service) GetUserByEmail(m string) (*models.User, error) {
-	return s.Store.UserStore.Find(&domain.CreateUserInput{
+func (s *Service) GetUserByEmail(tx *sql.Tx, m string) (*models.User, error) {
+	return s.Store.UserStore.Find(tx, &domain.CreateUserInput{
 		Email: m,
 	})
 }
