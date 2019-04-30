@@ -76,7 +76,7 @@ func TestService_GetAllUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					User: &tt.fields.User,
+					UserStore: &tt.fields.User,
 				},
 			}
 			got, err := s.GetAllUser()
@@ -214,7 +214,7 @@ func TestService_CreateUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					User: &tt.fields.User,
+					UserStore: &tt.fields.User,
 				},
 			}
 			got, err := s.CreateUser(tt.args.p)

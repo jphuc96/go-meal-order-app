@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 
 	"git.d.foundation/datcom/backend/models"
@@ -8,27 +9,27 @@ import (
 )
 
 // AddItems ..
-func (s *Service) AddItems(items *domain.ItemInput, menuID int) ([]*models.Item, error) {
+func (s *Service) AddItems(tx *sql.Tx, items *domain.ItemInput, menuID int) ([]*models.Item, error) {
 	var list []*models.Item
 
-	exists, err := s.Store.Menu.CheckMenuExist(menuID)
+	exists, err := s.Store.MenuStore.CheckMenuExist(menuID)
 	if err != nil {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.New("Menu does not exist")
+		return nil, errors.New(domain.MenuNotExist)
 	}
 
 	for _, it := range items.Items {
 		i := &domain.Item{ItemName: it.ItemName, MenuID: menuID}
-		exists, err := s.Store.Item.CheckItemExist(i.ID)
+		exists, err := s.Store.ItemStore.CheckItemExist(tx, i.ID)
 		if err != nil {
 			return nil, err
 		}
 		if exists {
 			continue
 		}
-		resItem, err := s.Store.Item.Add(i)
+		resItem, err := s.Store.ItemStore.Add(tx, i)
 		if err != nil {
 			return nil, err
 		}

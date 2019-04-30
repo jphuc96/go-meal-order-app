@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 
 	"git.d.foundation/datcom/backend/models"
@@ -8,38 +9,39 @@ import (
 )
 
 // DeleteItem ..
-func (s *Service) DeleteItem(i *domain.Item) (*models.Item, error) {
-	exists, err := s.Store.Item.CheckItemExist(i.ID)
+func (s *Service) DeleteItem(tx *sql.Tx, i *domain.Item) (*models.Item, error) {
+
+	exists, err := s.Store.ItemStore.CheckItemExist(tx, i.ID)
 	if err != nil {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.New("Item does not exist")
+		return nil, errors.New(domain.ItemNotExist)
 	}
 
-	it, err := s.Store.Item.FindByID(i.ID)
+	it, err := s.Store.ItemStore.FindByID(tx, i.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	exists, err = s.Store.Order.CheckOrderExistByItemID(i.ID)
+	exists, err = s.Store.OrderStore.CheckOrderExistByItemID(tx, i.ID)
 	if err != nil {
 		return nil, err
 	}
 	if exists {
-		orders, err := s.Store.Order.GetAllOrdersByItemID(i.ID)
+		orders, err := s.Store.OrderStore.GetAllOrdersByItemID(tx, i.ID)
 		if err != nil {
 			return nil, err
 		}
 		for _, o := range orders {
-			err := s.Store.Order.DeleteOrder(o)
+			err := s.Store.OrderStore.DeleteOrder(tx, o)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 
-	err = s.Store.Item.Delete(it)
+	err = s.Store.ItemStore.Delete(tx, it)
 	if err != nil {
 		return nil, err
 	}
@@ -47,10 +49,10 @@ func (s *Service) DeleteItem(i *domain.Item) (*models.Item, error) {
 	return it, err
 }
 
-func (s *Service) CheckItemExist(itemID int) (bool, error) {
-	return s.Store.Item.CheckItemExist(itemID)
+func (s *Service) CheckItemExist(tx *sql.Tx, itemID int) (bool, error) {
+	return s.Store.ItemStore.CheckItemExist(tx, itemID)
 }
 
-func (s *Service) GetItemByID(itemID int) (*models.Item, error) {
-	return s.Store.Item.FindByID(itemID)
+func (s *Service) GetItemByID(tx *sql.Tx, itemID int) (*models.Item, error) {
+	return s.Store.ItemStore.FindByID(tx, itemID)
 }

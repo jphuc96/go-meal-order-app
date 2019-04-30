@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 	"reflect"
 	"testing"
@@ -17,6 +18,7 @@ func TestService_AddItems(t *testing.T) {
 		Item item.ServiceMock
 	}
 	type args struct {
+		tx     *sql.Tx
 		items  *domain.ItemInput
 		menuID int
 	}
@@ -37,10 +39,10 @@ func TestService_AddItems(t *testing.T) {
 					},
 				},
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return false, nil
 					},
-					AddFunc: func(*domain.Item) (*models.Item, error) {
+					AddFunc: func(tx *sql.Tx, i *domain.Item) (*models.Item, error) {
 						return &models.Item{
 							ItemName: "Mon 7",
 							MenuID:   22,
@@ -107,7 +109,7 @@ func TestService_AddItems(t *testing.T) {
 					},
 				},
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return false, errors.New("Check Error")
 					},
 				},
@@ -134,7 +136,7 @@ func TestService_AddItems(t *testing.T) {
 					},
 				},
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return true, nil
 					},
 				},
@@ -161,10 +163,10 @@ func TestService_AddItems(t *testing.T) {
 					},
 				},
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return false, nil
 					},
-					AddFunc: func(*domain.Item) (*models.Item, error) {
+					AddFunc: func(tx *sql.Tx, i *domain.Item) (*models.Item, error) {
 						return nil, errors.New("Add Item Failed")
 					},
 				},
@@ -188,11 +190,11 @@ func TestService_AddItems(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store{
-					Menu: &tt.fields.Menu,
-					Item: &tt.fields.Item,
+					MenuStore: &tt.fields.Menu,
+					ItemStore: &tt.fields.Item,
 				},
 			}
-			got, err := s.AddItems(tt.args.items, tt.args.menuID)
+			got, err := s.AddItems(tt.args.tx, tt.args.items, tt.args.menuID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.AddItems() error = %v, wantErr %v", err, tt.wantErr)
 				return

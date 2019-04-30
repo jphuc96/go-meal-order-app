@@ -29,22 +29,22 @@ func mapItemInputToModel(i *domain.Item) *models.Item {
 	}
 }
 
-func (s *itemService) Add(i *domain.Item) (*models.Item, error) {
+func (s *itemService) Add(tx *sql.Tx, i *domain.Item) (*models.Item, error) {
 	item := mapItemInputToModel(i)
-	return item, item.Insert(context.Background(), s.db, boil.Infer())
+	return item, item.Insert(context.Background(), tx, boil.Infer())
 }
 
-func (s *itemService) FindByID(itemID int) (*models.Item, error) {
-	return models.FindItem(context.Background(), s.db, itemID)
+func (s *itemService) FindByID(tx *sql.Tx, itemID int) (*models.Item, error) {
+	return models.FindItem(context.Background(), tx, itemID)
 }
 
-func (s *itemService) Delete(i *models.Item) error {
-	_, err := i.Delete(context.Background(), s.db)
+func (s *itemService) Delete(tx *sql.Tx, i *models.Item) error {
+	_, err := i.Delete(context.Background(), tx)
 	return err
 }
 
-func (s *itemService) CheckItemExist(itemID int) (bool, error) {
-	b, err := models.Items(qm.Where("id=?", itemID)).Exists(context.Background(), s.db)
+func (s *itemService) CheckItemExist(tx *sql.Tx, itemID int) (bool, error) {
+	b, err := models.Items(qm.Where("id=?", itemID)).Exists(context.Background(), tx)
 	if err != nil {
 		return false, err
 	}

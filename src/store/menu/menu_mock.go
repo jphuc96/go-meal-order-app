@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	lockServiceMockCheckMenuExist sync.RWMutex
-	lockServiceMockFindByID       sync.RWMutex
+	lockServiceMockCheckMenuExist   sync.RWMutex
+	lockServiceMockCreate           sync.RWMutex
+	lockServiceMockIsMenuNameUnique sync.RWMutex
 )
 
 // Ensure, that ServiceMock does implement Service.
@@ -27,8 +28,11 @@ var _ Service = &ServiceMock{}
 //             CheckMenuExistFunc: func(menuID int) (bool, error) {
 // 	               panic("mock out the CheckMenuExist method")
 //             },
-//             FindByIDFunc: func(mn *domain.MenuInput) (*models.Menu, error) {
-// 	               panic("mock out the FindByID method")
+//             CreateFunc: func(p *domain.CreateMenuInput) (*models.Menu, error) {
+// 	               panic("mock out the Create method")
+//             },
+//             IsMenuNameUniqueFunc: func(menuName string) (bool, error) {
+// 	               panic("mock out the IsMenuNameUnique method")
 //             },
 //         }
 //
@@ -40,8 +44,11 @@ type ServiceMock struct {
 	// CheckMenuExistFunc mocks the CheckMenuExist method.
 	CheckMenuExistFunc func(menuID int) (bool, error)
 
-	// FindByIDFunc mocks the FindByID method.
-	FindByIDFunc func(mn *domain.MenuInput) (*models.Menu, error)
+	// CreateFunc mocks the Create method.
+	CreateFunc func(p *domain.CreateMenuInput) (*models.Menu, error)
+
+	// IsMenuNameUniqueFunc mocks the IsMenuNameUnique method.
+	IsMenuNameUniqueFunc func(menuName string) (bool, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -50,10 +57,15 @@ type ServiceMock struct {
 			// MenuID is the menuID argument value.
 			MenuID int
 		}
-		// FindByID holds details about calls to the FindByID method.
-		FindByID []struct {
-			// Mn is the mn argument value.
-			Mn *domain.MenuInput
+		// Create holds details about calls to the Create method.
+		Create []struct {
+			// P is the p argument value.
+			P *domain.CreateMenuInput
+		}
+		// IsMenuNameUnique holds details about calls to the IsMenuNameUnique method.
+		IsMenuNameUnique []struct {
+			// MenuName is the menuName argument value.
+			MenuName string
 		}
 	}
 }
@@ -89,33 +101,64 @@ func (mock *ServiceMock) CheckMenuExistCalls() []struct {
 	return calls
 }
 
-// FindByID calls FindByIDFunc.
-func (mock *ServiceMock) FindByID(mn *domain.MenuInput) (*models.Menu, error) {
-	if mock.FindByIDFunc == nil {
-		panic("ServiceMock.FindByIDFunc: method is nil but Service.FindByID was just called")
+// Create calls CreateFunc.
+func (mock *ServiceMock) Create(p *domain.CreateMenuInput) (*models.Menu, error) {
+	if mock.CreateFunc == nil {
+		panic("ServiceMock.CreateFunc: method is nil but Service.Create was just called")
 	}
 	callInfo := struct {
-		Mn *domain.MenuInput
+		P *domain.CreateMenuInput
 	}{
-		Mn: mn,
+		P: p,
 	}
-	lockServiceMockFindByID.Lock()
-	mock.calls.FindByID = append(mock.calls.FindByID, callInfo)
-	lockServiceMockFindByID.Unlock()
-	return mock.FindByIDFunc(mn)
+	lockServiceMockCreate.Lock()
+	mock.calls.Create = append(mock.calls.Create, callInfo)
+	lockServiceMockCreate.Unlock()
+	return mock.CreateFunc(p)
 }
 
-// FindByIDCalls gets all the calls that were made to FindByID.
+// CreateCalls gets all the calls that were made to Create.
 // Check the length with:
-//     len(mockedService.FindByIDCalls())
-func (mock *ServiceMock) FindByIDCalls() []struct {
-	Mn *domain.MenuInput
+//     len(mockedService.CreateCalls())
+func (mock *ServiceMock) CreateCalls() []struct {
+	P *domain.CreateMenuInput
 } {
 	var calls []struct {
-		Mn *domain.MenuInput
+		P *domain.CreateMenuInput
 	}
-	lockServiceMockFindByID.RLock()
-	calls = mock.calls.FindByID
-	lockServiceMockFindByID.RUnlock()
+	lockServiceMockCreate.RLock()
+	calls = mock.calls.Create
+	lockServiceMockCreate.RUnlock()
+	return calls
+}
+
+// IsMenuNameUnique calls IsMenuNameUniqueFunc.
+func (mock *ServiceMock) IsMenuNameUnique(menuName string) (bool, error) {
+	if mock.IsMenuNameUniqueFunc == nil {
+		panic("ServiceMock.IsMenuNameUniqueFunc: method is nil but Service.IsMenuNameUnique was just called")
+	}
+	callInfo := struct {
+		MenuName string
+	}{
+		MenuName: menuName,
+	}
+	lockServiceMockIsMenuNameUnique.Lock()
+	mock.calls.IsMenuNameUnique = append(mock.calls.IsMenuNameUnique, callInfo)
+	lockServiceMockIsMenuNameUnique.Unlock()
+	return mock.IsMenuNameUniqueFunc(menuName)
+}
+
+// IsMenuNameUniqueCalls gets all the calls that were made to IsMenuNameUnique.
+// Check the length with:
+//     len(mockedService.IsMenuNameUniqueCalls())
+func (mock *ServiceMock) IsMenuNameUniqueCalls() []struct {
+	MenuName string
+} {
+	var calls []struct {
+		MenuName string
+	}
+	lockServiceMockIsMenuNameUnique.RLock()
+	calls = mock.calls.IsMenuNameUnique
+	lockServiceMockIsMenuNameUnique.RUnlock()
 	return calls
 }

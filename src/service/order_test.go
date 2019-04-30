@@ -32,7 +32,7 @@ func TestService_AddOrder(t *testing.T) {
 			name: "Test AddOrder() when order does not exist",
 			fields: fields{
 				order.ServiceMock{
-					ExistFunc: func(o *domain.OrderInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.OrderInput) (bool, error) {
 						return false, nil
 					},
 					AddFunc: func(tx *sql.Tx, o *domain.OrderInput) (*models.Order, error) {
@@ -46,10 +46,10 @@ func TestService_AddOrder(t *testing.T) {
 			name: "Test AddOrder() when order exists",
 			fields: fields{
 				order.ServiceMock{
-					ExistFunc: func(o *domain.OrderInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.OrderInput) (bool, error) {
 						return true, nil
 					},
-					GetOrderByOrderInputFunc: func(o *domain.OrderInput) (*models.Order, error) {
+					GetOrderByOrderInputFunc: func(tx *sql.Tx, o *domain.OrderInput) (*models.Order, error) {
 						return nil, nil
 					},
 				},
@@ -61,7 +61,7 @@ func TestService_AddOrder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Order: &tt.fields.Order,
+					OrderStore: &tt.fields.Order,
 				},
 			}
 			if _, err := s.AddOrder(tt.args.t, tt.args.o); (err != nil) != tt.wantErr {
@@ -90,7 +90,7 @@ func TestService_DeleteOrder(t *testing.T) {
 			name: "Test DeleteOrder() when order exists",
 			fields: fields{
 				order.ServiceMock{
-					ExistFunc: func(o *domain.OrderInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.OrderInput) (bool, error) {
 						return true, nil
 					},
 					DeleteFunc: func(tx *sql.Tx, o *domain.OrderInput) error {
@@ -104,7 +104,7 @@ func TestService_DeleteOrder(t *testing.T) {
 			name: "Test DeleteOrder() when order does not exist",
 			fields: fields{
 				order.ServiceMock{
-					ExistFunc: func(o *domain.OrderInput) (bool, error) {
+					ExistFunc: func(tx *sql.Tx, o *domain.OrderInput) (bool, error) {
 						return false, nil
 					},
 				},
@@ -116,7 +116,7 @@ func TestService_DeleteOrder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Order: &tt.fields.Order,
+					OrderStore: &tt.fields.Order,
 				},
 			}
 			if err := s.DeleteOrder(tt.args.t, tt.args.o); (err != nil) != tt.wantErr {
@@ -169,7 +169,7 @@ func TestService_GetOrdersByMenuAndUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Order: &tt.fields.Order,
+					OrderStore: &tt.fields.Order,
 				},
 			}
 			got, err := s.GetOrdersByMenuAndUser(tt.args.menuID, tt.args.userID)

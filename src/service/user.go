@@ -4,6 +4,8 @@ import (
 	"errors"
 	"regexp"
 
+	
+
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 )
@@ -15,20 +17,20 @@ var (
 func (s *Service) CreateUser(p *domain.UserInput) (*models.User, error) {
 
 	if !(re.MatchString(p.Email)) {
-		return nil, errors.New("Invalid email address")
+		return nil, errors.New(domain.InvalidEmailFormat)
 	}
 
-	u, err := s.Store.User.Find(p)
+	u, err := s.Store.UserStore.Find(p)
 	if err != nil {
 		return nil, err
 	}
 	if u == nil {
-		return s.Store.User.Create(p)
+		return s.Store.UserStore.Create(p)
 	}
-	return nil, errors.New("User existed")
+	return nil, errors.New(domain.UserExist)
 }
 
 func (s *Service) GetAllUser() ([]*models.User, error) {
-	u, err := s.Store.User.FindAll()
+	u, err := s.Store.UserStore.FindAll()
 	return u, err
 }

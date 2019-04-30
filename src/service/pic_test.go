@@ -55,7 +55,7 @@ func TestService_AddPIC(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					PIC: &tt.fields.PIC,
+					PICStore: &tt.fields.PIC,
 				},
 			}
 			got, err := s.AddPIC(tt.args.p)
@@ -112,7 +112,7 @@ func TestService_GetPICByMenuID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					PIC: &tt.fields.PIC,
+					PICStore: &tt.fields.PIC,
 				},
 			}
 			got, err := s.GetPICByMenuID(tt.args.menuID)

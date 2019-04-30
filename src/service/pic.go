@@ -8,16 +8,16 @@ import (
 )
 
 func (s *Service) AddPIC(p *domain.PICInput) (*models.PeopleInCharge, error) {
-	exist, _ := s.Store.PIC.Exist(p)
+	exist, _ := s.Store.PICStore.Exist(p)
 	if exist {
-		return nil, errors.New("already exist")
+		return nil, errors.New(domain.PICExist)
 	}
 
-	return s.Store.PIC.Add(p)
+	return s.Store.PICStore.Add(p)
 }
 
 func (s *Service) GetPICByMenuID(menuID int) ([]*models.PeopleInCharge, error) {
-	people, err := s.Store.PIC.GetByMenuID(menuID)
+	people, err := s.Store.PICStore.GetByMenuID(menuID)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 	"reflect"
 	"testing"
@@ -17,7 +18,8 @@ func TestService_DeleteItem(t *testing.T) {
 		Order order.ServiceMock
 	}
 	type args struct {
-		i *domain.Item
+		tx *sql.Tx
+		i  *domain.Item
 	}
 	tests := []struct {
 		name    string
@@ -31,28 +33,28 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "PassNoOrder",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return true, nil
 					},
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return &models.Item{
 							ID:       7,
 							ItemName: "Mon 7",
 							MenuID:   22,
 						}, nil
 					},
-					DeleteFunc: func(i *models.Item) error {
+					DeleteFunc: func(tx *sql.Tx, i *models.Item) error {
 						return nil
 					},
 				},
 				order.ServiceMock{
-					CheckOrderExistByItemIDFunc: func(ItemID int) (bool, error) {
+					CheckOrderExistByItemIDFunc: func(tx *sql.Tx, ItemID int) (bool, error) {
 						return false, nil
 					},
-					GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
 						return nil, nil
 					},
-					DeleteOrderFunc: func(o *models.Order) error {
+					DeleteOrderFunc: func(tx *sql.Tx, o *models.Order) error {
 						return nil
 					},
 				},
@@ -74,25 +76,25 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "PassWithOrders",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return true, nil
 					},
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return &models.Item{
 							ID:       7,
 							ItemName: "Mon 7",
 							MenuID:   22,
 						}, nil
 					},
-					DeleteFunc: func(i *models.Item) error {
+					DeleteFunc: func(tx *sql.Tx, i *models.Item) error {
 						return nil
 					},
 				},
 				order.ServiceMock{
-					CheckOrderExistByItemIDFunc: func(ItemID int) (bool, error) {
+					CheckOrderExistByItemIDFunc: func(tx *sql.Tx, ItemID int) (bool, error) {
 						return true, nil
 					},
-					GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
 						return []*models.Order{
 							&models.Order{
 								ItemID: 7,
@@ -100,7 +102,7 @@ func TestService_DeleteItem(t *testing.T) {
 							},
 						}, nil
 					},
-					DeleteOrderFunc: func(o *models.Order) error {
+					DeleteOrderFunc: func(tx *sql.Tx, o *models.Order) error {
 						return nil
 					},
 				},
@@ -122,24 +124,24 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "NoItem",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return false, nil
 					},
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return nil, errors.New("Item does not exist")
 					},
-					DeleteFunc: func(i *models.Item) error {
+					DeleteFunc: func(tx *sql.Tx, i *models.Item) error {
 						return nil
 					},
 				},
 				order.ServiceMock{
-					CheckOrderExistByItemIDFunc: func(ItemID int) (bool, error) {
+					CheckOrderExistByItemIDFunc: func(tx *sql.Tx, ItemID int) (bool, error) {
 						return false, nil
 					},
-					GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
 						return nil, nil
 					},
-					DeleteOrderFunc: func(o *models.Order) error {
+					DeleteOrderFunc: func(tx *sql.Tx, o *models.Order) error {
 						return nil
 					},
 				},
@@ -157,24 +159,24 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "CheckItemError",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return false, errors.New("Check Item Error")
 					},
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return nil, nil
 					},
-					DeleteFunc: func(i *models.Item) error {
+					DeleteFunc: func(tx *sql.Tx, i *models.Item) error {
 						return nil
 					},
 				},
 				order.ServiceMock{
-					CheckOrderExistByItemIDFunc: func(ItemID int) (bool, error) {
+					CheckOrderExistByItemIDFunc: func(tx *sql.Tx, ItemID int) (bool, error) {
 						return false, nil
 					},
-					GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
 						return nil, nil
 					},
-					DeleteOrderFunc: func(o *models.Order) error {
+					DeleteOrderFunc: func(tx *sql.Tx, o *models.Order) error {
 						return nil
 					},
 				},
@@ -192,24 +194,24 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Find Item Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return true, nil
 					},
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return nil, errors.New("Find Item Error")
 					},
-					DeleteFunc: func(i *models.Item) error {
+					DeleteFunc: func(tx *sql.Tx, i *models.Item) error {
 						return nil
 					},
 				},
 				order.ServiceMock{
-					CheckOrderExistByItemIDFunc: func(ItemID int) (bool, error) {
+					CheckOrderExistByItemIDFunc: func(tx *sql.Tx, ItemID int) (bool, error) {
 						return false, nil
 					},
-					GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
 						return nil, nil
 					},
-					DeleteOrderFunc: func(o *models.Order) error {
+					DeleteOrderFunc: func(tx *sql.Tx, o *models.Order) error {
 						return nil
 					},
 				},
@@ -227,24 +229,24 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Delete Item Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return true, nil
 					},
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return nil, nil
 					},
-					DeleteFunc: func(i *models.Item) error {
+					DeleteFunc: func(tx *sql.Tx, i *models.Item) error {
 						return errors.New("Delete Item Error")
 					},
 				},
 				order.ServiceMock{
-					CheckOrderExistByItemIDFunc: func(ItemID int) (bool, error) {
+					CheckOrderExistByItemIDFunc: func(tx *sql.Tx, ItemID int) (bool, error) {
 						return false, nil
 					},
-					GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
 						return nil, nil
 					},
-					DeleteOrderFunc: func(o *models.Order) error {
+					DeleteOrderFunc: func(tx *sql.Tx, o *models.Order) error {
 						return nil
 					},
 				},
@@ -262,24 +264,24 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Check Order Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return true, nil
 					},
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return nil, nil
 					},
-					DeleteFunc: func(i *models.Item) error {
+					DeleteFunc: func(tx *sql.Tx, i *models.Item) error {
 						return nil
 					},
 				},
 				order.ServiceMock{
-					CheckOrderExistByItemIDFunc: func(ItemID int) (bool, error) {
+					CheckOrderExistByItemIDFunc: func(tx *sql.Tx, ItemID int) (bool, error) {
 						return false, errors.New("Check Order Error")
 					},
-					GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
 						return nil, nil
 					},
-					DeleteOrderFunc: func(o *models.Order) error {
+					DeleteOrderFunc: func(tx *sql.Tx, o *models.Order) error {
 						return nil
 					},
 				},
@@ -297,24 +299,24 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Get Orders Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return true, nil
 					},
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return nil, nil
 					},
-					DeleteFunc: func(i *models.Item) error {
+					DeleteFunc: func(tx *sql.Tx, i *models.Item) error {
 						return nil
 					},
 				},
 				order.ServiceMock{
-					CheckOrderExistByItemIDFunc: func(ItemID int) (bool, error) {
+					CheckOrderExistByItemIDFunc: func(tx *sql.Tx, ItemID int) (bool, error) {
 						return true, nil
 					},
-					GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
 						return nil, errors.New("Get Orders Error")
 					},
-					DeleteOrderFunc: func(o *models.Order) error {
+					DeleteOrderFunc: func(tx *sql.Tx, o *models.Order) error {
 						return nil
 					},
 				},
@@ -332,21 +334,21 @@ func TestService_DeleteItem(t *testing.T) {
 			name: "Delete Order Error",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return true, nil
 					},
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return nil, nil
 					},
-					DeleteFunc: func(i *models.Item) error {
+					DeleteFunc: func(tx *sql.Tx, i *models.Item) error {
 						return nil
 					},
 				},
 				order.ServiceMock{
-					CheckOrderExistByItemIDFunc: func(ItemID int) (bool, error) {
+					CheckOrderExistByItemIDFunc: func(tx *sql.Tx, ItemID int) (bool, error) {
 						return true, nil
 					},
-					GetAllOrdersByItemIDFunc: func(ItemID int) ([]*models.Order, error) {
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
 						return []*models.Order{
 							&models.Order{
 								ItemID: 7,
@@ -354,7 +356,7 @@ func TestService_DeleteItem(t *testing.T) {
 							},
 						}, nil
 					},
-					DeleteOrderFunc: func(o *models.Order) error {
+					DeleteOrderFunc: func(tx *sql.Tx, o *models.Order) error {
 						return errors.New("Delete Order Error")
 					},
 				},
@@ -373,11 +375,11 @@ func TestService_DeleteItem(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Item:  &tt.fields.Item,
-					Order: &tt.fields.Order,
+					ItemStore:  &tt.fields.Item,
+					OrderStore: &tt.fields.Order,
 				},
 			}
-			got, err := s.DeleteItem(tt.args.i)
+			got, err := s.DeleteItem(tt.args.tx, tt.args.i)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.DeleteItem() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -394,6 +396,7 @@ func TestService_CheckItemExist(t *testing.T) {
 		Item item.ServiceMock
 	}
 	type args struct {
+		tx     *sql.Tx
 		itemID int
 	}
 	tests := []struct {
@@ -408,7 +411,7 @@ func TestService_CheckItemExist(t *testing.T) {
 			name: "check exist success",
 			fields: fields{
 				item.ServiceMock{
-					CheckItemExistFunc: func(itemID int) (bool, error) {
+					CheckItemExistFunc: func(tx *sql.Tx, itemID int) (bool, error) {
 						return false, nil
 					},
 				},
@@ -420,10 +423,10 @@ func TestService_CheckItemExist(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Item: &tt.fields.Item,
+					ItemStore: &tt.fields.Item,
 				},
 			}
-			got, err := s.CheckItemExist(tt.args.itemID)
+			got, err := s.CheckItemExist(tt.args.tx, tt.args.itemID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.CheckItemExist() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -440,6 +443,7 @@ func TestService_GetItemByID(t *testing.T) {
 		Item item.ServiceMock
 	}
 	type args struct {
+		tx     *sql.Tx
 		itemID int
 	}
 	tests := []struct {
@@ -454,7 +458,7 @@ func TestService_GetItemByID(t *testing.T) {
 			name: "test get item by id",
 			fields: fields{
 				item.ServiceMock{
-					FindByIDFunc: func(itemID int) (*models.Item, error) {
+					FindByIDFunc: func(tx *sql.Tx, itemID int) (*models.Item, error) {
 						return nil, nil
 					},
 				},
@@ -466,10 +470,10 @@ func TestService_GetItemByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				Store: Store{
-					Item: &tt.fields.Item,
+					ItemStore: &tt.fields.Item,
 				},
 			}
-			got, err := s.GetItemByID(tt.args.itemID)
+			got, err := s.GetItemByID(tt.args.tx, tt.args.itemID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.GetItemByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
