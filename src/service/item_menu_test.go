@@ -34,7 +34,7 @@ func TestService_AddItems(t *testing.T) {
 			name: "Pass",
 			fields: fields{
 				menu.ServiceMock{
-					CheckMenuExistFunc: func(menuID int) (bool, error) {
+					CheckMenuExistFunc: func(tx *sql.Tx, menuID int) (bool, error) {
 						return true, nil
 					},
 				},
@@ -72,7 +72,7 @@ func TestService_AddItems(t *testing.T) {
 			name: "CheckMenuExistFailed",
 			fields: fields{
 				menu.ServiceMock{
-					CheckMenuExistFunc: func(menuID int) (bool, error) {
+					CheckMenuExistFunc: func(tx *sql.Tx, menuID int) (bool, error) {
 						return false, errors.New("Find Error")
 					},
 				},
@@ -88,7 +88,7 @@ func TestService_AddItems(t *testing.T) {
 			name: "MenuNotExist",
 			fields: fields{
 				menu.ServiceMock{
-					CheckMenuExistFunc: func(menuID int) (bool, error) {
+					CheckMenuExistFunc: func(tx *sql.Tx, menuID int) (bool, error) {
 						return false, nil
 					},
 				},
@@ -104,7 +104,7 @@ func TestService_AddItems(t *testing.T) {
 			name: "CheckItemExistFailed",
 			fields: fields{
 				menu.ServiceMock{
-					CheckMenuExistFunc: func(menuID int) (bool, error) {
+					CheckMenuExistFunc: func(tx *sql.Tx, menuID int) (bool, error) {
 						return true, nil
 					},
 				},
@@ -131,7 +131,7 @@ func TestService_AddItems(t *testing.T) {
 			name: "ItemExists",
 			fields: fields{
 				menu.ServiceMock{
-					CheckMenuExistFunc: func(menuID int) (bool, error) {
+					CheckMenuExistFunc: func(tx *sql.Tx, menuID int) (bool, error) {
 						return true, nil
 					},
 				},
@@ -158,7 +158,7 @@ func TestService_AddItems(t *testing.T) {
 			name: "AddItemFailed",
 			fields: fields{
 				menu.ServiceMock{
-					CheckMenuExistFunc: func(menuID int) (bool, error) {
+					CheckMenuExistFunc: func(tx *sql.Tx, menuID int) (bool, error) {
 						return true, nil
 					},
 				},

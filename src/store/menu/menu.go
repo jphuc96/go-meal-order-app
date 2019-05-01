@@ -25,7 +25,6 @@ func NewService(db *sql.DB) Service {
 
 func mapMenuInputToModel(m *domain.MenuInput) *models.Menu {
 	return &models.Menu{
-		ID:              m.ID,
 		OwnerID:         m.OwnerID,
 		MenuName:        m.MenuName,
 		Deadline:        m.Deadline,
@@ -34,38 +33,31 @@ func mapMenuInputToModel(m *domain.MenuInput) *models.Menu {
 	}
 }
 
-func (s *menuService) CheckMenuExist(menuID int) (bool, error) {
+func (ms *menuService) CheckMenuExist(tx *sql.Tx, menuID int) (bool, error) {
 	return models.Menus(
 		qm.Where("id = ?", menuID),
-	).Exists(context.Background(), s.db)
+	).Exists(context.Background(), tx)
 }
 
 //Create function
-func (mn *menuService) Create(p *domain.MenuInput) (*models.Menu, error) {
-
+func (ms *menuService) Create(tx *sql.Tx, p *domain.MenuInput) (*models.Menu, error) {
 	m := mapMenuInputToModel(p)
-	tx, err := mn.db.BeginTx(context.Background(), nil)
+
+	err := m.Insert(context.Background(), tx, boil.Infer())
 	if err != nil {
-		return nil, domain.TxCreateFailed
+		return nil, err
 	}
-	err = m.Insert(context.Background(), tx, boil.Infer())
-	if err != nil {
-		tx.Rollback()
-		return nil, domain.TxRollBack
-	}
-	tx.Commit()
 	return m, nil
 }
 
-func (mn *menuService) IsMenuNameUnique(menuName string) (bool, error) {
-	return models.Menus(qm.Where("menu_name=?", menuName)).Exists(context.Background(), mn.db)
+func (ms *menuService) IsMenuNameUnique(tx *sql.Tx, menuName string) (bool, error) {
+	return models.Menus(qm.Where("menu_name=?", menuName)).Exists(context.Background(), tx)
 }
 
-func (s *menuService) FindByID(mn *domain.MenuInput) (*models.Menu, error) {
-	m := mapMenuInputToModel(mn)
-	return models.FindMenu(context.Background(), s.db, m.ID)
+func (ms *menuService) FindByID(tx *sql.Tx, menuID int) (*models.Menu, error) {
+	return models.FindMenu(context.Background(), tx, menuID)
 }
 
-func (s *menuService) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
+func (ms *menuService) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
 	return models.Menus(qm.OrderBy("created_at DESC")).One(context.Background(), tx)
 }

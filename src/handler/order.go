@@ -41,11 +41,13 @@ func (c *CoreHandler) CreateOrModifyOrder(w http.ResponseWriter, r *http.Request
 
 	var newItems domain.OrderReq
 	d := json.NewDecoder(r.Body)
+
 	err := d.Decode(&newItems)
 	if err != nil {
 		handleHTTPError(err, http.StatusBadRequest, w)
 		return
 	}
+	defer r.Body.Close()
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
