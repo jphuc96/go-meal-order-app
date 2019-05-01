@@ -7,7 +7,11 @@ type ItemInput struct {
 
 // Item ..
 type Item struct {
-	ID       int
-	ItemName string
-	MenuID   int
+	ID       int    `json:"id"`
+	ItemName string `json:"item_name"`
+	MenuID   int    `json:"menu_id"`
+}
+
+type ItemResp struct {
+	Item Item `json:"item"`
 }

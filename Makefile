@@ -18,7 +18,7 @@ local-env:
 	docker-compose -f test_postgres/docker-compose.yml up -d
 
 dev:
-	go build -o bin/server ./cmd/server
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bin/server ./cmd/server
 	bin/server
 
 test:

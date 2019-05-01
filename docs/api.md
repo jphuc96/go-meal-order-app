@@ -169,7 +169,7 @@
         }
         ```
 
-#### /menus/{MenuID}/items/{ItemID}
+#### /items/{ItemID}
 
 - DELETE: Delete an item from menu
     - Request:
@@ -257,24 +257,6 @@
                     "name" : "string"
                 }
             ], 
-        }
-        ```
-- POST: Add people in charge
-    - Request:
-        ```json
-        {
-            "id" : []
-        }
-        ```
-    - Response:
-        ```json
-        {
-            "users" : [
-                {
-                    "id" : 0,
-                    "name" : "string"
-                }
-            ],    
         }
         ```
 

@@ -62,8 +62,7 @@ func (a *App) SetRouters() {
 	a.Router.HandleFunc("/menus", a.CreateMenu).Methods("POST")
 	a.Router.HandleFunc("/menus/{MenuID}/time", a.ModifyMenuTime).Methods("POST")
 	a.Router.HandleFunc("/menus/{MenuID}/items", a.AddItemToMenu).Methods("POST")
-	a.Router.HandleFunc("/menus/{MenuID}/items/{ItemID}", a.DeleteItemFromMenu).Methods("DELETE")
-	a.Router.HandleFunc("/menus/{MenuID}/summary", a.GetMenuSummary).Methods("GET")
+	a.Router.HandleFunc("/items/{ItemID}", a.DeleteItemFromMenu).Methods("DELETE")
 	a.Router.HandleFunc("/menus/{MenuID}/users/{UserID}/orders", a.GetOrdersOfUser).Methods("GET")
 	a.Router.HandleFunc("/menus/{MenuID}/users/{UserID}/orders", a.CreateOrModifyOrder).Methods("POST")
 	a.Router.HandleFunc("/menus/{MenuID}/users/{UserID}/orders", a.CancelAllOrderOfUser).Methods("DELETE")
@@ -103,25 +102,13 @@ func (a *App) ModifyMenuTime(w http.ResponseWriter, r *http.Request) {
 func (a *App) AddItemToMenu(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-}
-
-func (a *App) DeleteMenu(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	a.Handler.AddItemToMenu(w, r)
 }
 
 func (a *App) DeleteItemFromMenu(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-}
-
-func (a *App) GetMenuSummary(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	a.Handler.DeleteItemFromMenu(w, r)
 }
 
 func (a *App) GetOrdersOfUser(w http.ResponseWriter, r *http.Request) {

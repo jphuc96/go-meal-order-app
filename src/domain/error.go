@@ -18,6 +18,9 @@ var (
 	MenuExist        = errors.New("menu already exists")
 	CreateUserFailed = errors.New("create user operation failed")
 	UserNotExistInFT = errors.New("user does not exist in Fortress")
+	InvalidMenuID    = errors.New("invalid menu_id")
+	InvalidItemID    = errors.New("invalid item_id")
+	InvalidUserID    = errors.New("invalid user_id")
 )
 
 type ErrorResponse struct {
