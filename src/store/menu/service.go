@@ -9,9 +9,9 @@ import (
 
 // Service ..
 type Service interface {
-	CheckMenuExist(menuID int) (bool, error)
-	Create(p *domain.MenuInput) (*models.Menu, error)
-	IsMenuNameUnique(menuName string) (bool, error)
-	FindByID(mn *domain.MenuInput) (*models.Menu, error)
+	CheckMenuExist(tx *sql.Tx, menuID int) (bool, error)
+	Create(tx *sql.Tx, p *domain.MenuInput) (*models.Menu, error)
+	IsMenuNameUnique(tx *sql.Tx, menuName string) (bool, error)
+	FindByID(tx *sql.Tx, menuID int) (*models.Menu, error)
 	GetLatestMenu(tx *sql.Tx) (*models.Menu, error)
 }

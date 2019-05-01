@@ -4,10 +4,14 @@ import "time"
 
 // MenuInput ..
 type MenuInput struct {
-	ID              int
-	OwnerID         int
-	MenuName        string
-	Deadline        time.Time
-	PaymentReminder time.Time
-	Status          int
+	OwnerID         int       `json:"owner_id"`
+	MenuName        string    `json:"name"`
+	Deadline        time.Time `json:"deadline"`
+	PaymentReminder time.Time `json:"payment_reminder"`
+	Status          int       `json:"status"`
+}
+
+type MenuReq struct {
+	Menu      MenuInput `json:"menu"`
+	ItemNames []string  `json:"item_names"`
 }

@@ -22,7 +22,7 @@ type MenuPIC struct {
 	UserName string `json:"user_name,omitempty"`
 }
 
-type RespMenu struct {
+type MenuResp struct {
 	Menu           *models.Menu `json:"menu,omitempty"`
 	Items          []MenuItem   `json:"items,omitempty"`
 	PeopleInCharge []MenuPIC    `json:"people_in_charge,omitempty"`

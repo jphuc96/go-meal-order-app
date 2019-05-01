@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 	"testing"
 	"time"
@@ -15,7 +16,8 @@ func TestService_CreateMenu(t *testing.T) {
 		Menu menu.ServiceMock
 	}
 	type args struct {
-		p *domain.MenuInput
+		tx *sql.Tx
+		p  *domain.MenuInput
 	}
 	tests := []struct {
 		name    string
@@ -29,15 +31,16 @@ func TestService_CreateMenu(t *testing.T) {
 			name: "Pass",
 			fields: fields{
 				menu.ServiceMock{
-					IsMenuNameUniqueFunc: func(menuName string) (bool, error) {
+					IsMenuNameUniqueFunc: func(tx *sql.Tx, menuName string) (bool, error) {
 						return false, nil
 					},
-					CreateFunc: func(p *domain.MenuInput) (*models.Menu, error) {
+					CreateFunc: func(tx *sql.Tx, p *domain.MenuInput) (*models.Menu, error) {
 						return nil, nil
 					},
 				},
 			},
 			args: args{
+				&sql.Tx{},
 				&domain.MenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
 			},
 			want:    &models.Menu{OwnerID: 0, MenuName: "0", CreatedAt: time.Now(), Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
@@ -47,12 +50,13 @@ func TestService_CreateMenu(t *testing.T) {
 			name: "Failed at finding menu",
 			fields: fields{
 				menu.ServiceMock{
-					IsMenuNameUniqueFunc: func(menuName string) (bool, error) {
+					IsMenuNameUniqueFunc: func(tx *sql.Tx, menuName string) (bool, error) {
 						return false, errors.New("Check exist error")
 					},
 				},
 			},
 			args: args{
+				&sql.Tx{},
 				&domain.MenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
 			},
 			want:    nil,
@@ -62,12 +66,13 @@ func TestService_CreateMenu(t *testing.T) {
 			name: "Duplicate",
 			fields: fields{
 				menu.ServiceMock{
-					IsMenuNameUniqueFunc: func(menuName string) (bool, error) {
+					IsMenuNameUniqueFunc: func(tx *sql.Tx, menuName string) (bool, error) {
 						return true, nil
 					},
 				},
 			},
 			args: args{
+				&sql.Tx{},
 				&domain.MenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
 			},
 			want:    nil,
@@ -76,15 +81,16 @@ func TestService_CreateMenu(t *testing.T) {
 		{
 			name: "Failed at creating menu",
 			fields: fields{menu.ServiceMock{
-				IsMenuNameUniqueFunc: func(menuName string) (bool, error) {
+				IsMenuNameUniqueFunc: func(tx *sql.Tx, menuName string) (bool, error) {
 					return false, nil
 				},
-				CreateFunc: func(p *domain.MenuInput) (*models.Menu, error) {
+				CreateFunc: func(tx *sql.Tx, p *domain.MenuInput) (*models.Menu, error) {
 					return nil, errors.New("Cannot insert menu")
 				},
 			},
 			},
 			args: args{
+				&sql.Tx{},
 				&domain.MenuInput{OwnerID: 0, MenuName: "0", Deadline: time.Now(), PaymentReminder: time.Now(), Status: 1},
 			},
 			want:    nil,
@@ -99,7 +105,7 @@ func TestService_CreateMenu(t *testing.T) {
 					MenuStore: &tt.fields.Menu,
 				},
 			}
-			_, err := s.CreateMenu(tt.args.p)
+			_, err := s.CreateMenu(tt.args.tx, tt.args.p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.CreateMenu() error = %v, wantErr %v", err, tt.wantErr)
 				return

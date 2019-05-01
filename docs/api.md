@@ -1,7 +1,7 @@
 ## Lunch Order REST API
 
 #### /auth/google
-- GET: Verify access
+- GET: Verify access token
     - Request:
         ```json
         {
@@ -108,7 +108,7 @@
                 "deadline" : "string",
                 "payment_reminder" : "string"
             },
-            "items_names" : [],
+            "item_names" : [],
         }
         ```
     - Response:
@@ -120,6 +120,7 @@
                 "deadline" : "string",
                 "payment_reminder" : "string",
                 "create_at" : "string",
+                "status" :"string"
             },
             "items" : [
                 {

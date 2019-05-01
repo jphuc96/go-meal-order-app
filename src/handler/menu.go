@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 )
 
 func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 
-	respMenu := &domain.RespMenu{}
+	menuResp := &domain.MenuResp{}
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
@@ -18,7 +19,8 @@ func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	latestMenu, err := c.service.GetLatestMenu(tx)
+	latestMenu := &models.Menu{}
+	latestMenu, err = c.service.GetLatestMenu(tx)
 	if err != nil {
 		tx.Rollback()
 		handleHTTPError(err, http.StatusInternalServerError, w)
@@ -82,11 +84,59 @@ func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	respMenu.Items = respItems
-	respMenu.Menu = latestMenu
-	respMenu.PeopleInCharge = respPIC
+	menuResp.Items = respItems
+	menuResp.Menu = latestMenu
+	menuResp.PeopleInCharge = respPIC
 
 	tx.Commit()
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&respMenu)
+	json.NewEncoder(w).Encode(&menuResp)
+}
+
+func (c *CoreHandler) CreateMenu(w http.ResponseWriter, r *http.Request) {
+	d := json.NewDecoder(r.Body)
+	defer r.Body.Close()
+	menuReq := &domain.MenuReq{}
+	err := d.Decode(&menuReq)
+	if err != nil {
+		handleHTTPError(err, http.StatusBadRequest, w)
+		return
+	}
+
+	tx, err := c.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		handleHTTPError(err, http.StatusInternalServerError, w)
+	}
+
+	menu, err := c.service.CreateMenu(tx, &menuReq.Menu)
+	if err != nil {
+		tx.Rollback()
+		handleHTTPError(err, http.StatusBadRequest, w)
+		return
+	}
+
+	menuItems := make([]domain.MenuItem, 0)
+	for _, itemName := range menuReq.ItemNames {
+		item, err := c.service.AddItemToMenu(tx, itemName, menu.ID)
+		if err != nil {
+			tx.Rollback()
+			handleHTTPError(err, http.StatusInternalServerError, w)
+			return
+		}
+		menuItems = append(menuItems, domain.MenuItem{
+			ID:       item.ID,
+			ItemName: item.ItemName,
+		})
+	}
+
+	menuResp := &domain.MenuResp{
+		Menu:  menu,
+		Items: menuItems,
+	}
+
+	menuResp.Menu.Status = 1
+
+	tx.Commit()
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(menuResp)
 }

@@ -11,7 +11,7 @@ import (
 func (s *Service) AddItems(tx *sql.Tx, items *domain.ItemInput, menuID int) ([]*models.Item, error) {
 	var list []*models.Item
 
-	exists, err := s.Store.MenuStore.CheckMenuExist(menuID)
+	exists, err := s.Store.MenuStore.CheckMenuExist(tx, menuID)
 	if err != nil {
 		return nil, err
 	}
@@ -40,4 +40,19 @@ func (s *Service) AddItems(tx *sql.Tx, items *domain.ItemInput, menuID int) ([]*
 
 func (s *Service) GetAllItemsByMenuID(tx *sql.Tx, menuID int) ([]*models.Item, error) {
 	return s.Store.ItemStore.GetAllItemsByMenuID(tx, menuID)
+}
+
+func (s *Service) AddItemToMenu(tx *sql.Tx, itemName string, menuID int) (*models.Item, error) {
+	exists, err := s.Store.MenuStore.CheckMenuExist(tx, menuID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, domain.MenuNotExist
+	}
+
+	return s.Store.ItemStore.Add(tx, &domain.Item{
+		ItemName: itemName,
+		MenuID:   menuID,
+	})
 }
