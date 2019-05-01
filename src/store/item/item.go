@@ -35,7 +35,7 @@ func (s *itemService) Add(tx *sql.Tx, i *domain.Item) (*models.Item, error) {
 }
 
 func (s *itemService) FindByID(tx *sql.Tx, itemID int) (*models.Item, error) {
-	return models.FindItem(context.Background(), tx, itemID)
+	return models.Items(qm.Where("id=?", itemID)).One(context.Background(), tx)
 }
 
 func (s *itemService) Delete(tx *sql.Tx, i *models.Item) error {
