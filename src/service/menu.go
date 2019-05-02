@@ -1,11 +1,13 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
+	"github.com/volatiletech/sqlboiler/boil"
 )
 
 //CreateMenu function
@@ -32,4 +34,16 @@ func (s *Service) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
 		return nil, nil
 	}
 	return m, nil
+}
+
+func (s *Service) GetMenuByID(tx *sql.Tx, menuID int) (*models.Menu, error) {
+	return s.Store.MenuStore.FindByID(tx, menuID)
+}
+
+func (s *Service) UpdateMenu(tx *sql.Tx, updateMenu *models.Menu) (*models.Menu, error) {
+	_, err := updateMenu.Update(context.Background(), tx, boil.Infer())
+	if err != nil {
+		return nil, err
+	}
+	return s.Store.MenuStore.FindByID(tx, updateMenu.ID)
 }

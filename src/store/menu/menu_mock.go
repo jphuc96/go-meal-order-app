@@ -16,6 +16,7 @@ var (
 	lockServiceMockFindByID         sync.RWMutex
 	lockServiceMockGetLatestMenu    sync.RWMutex
 	lockServiceMockIsMenuNameUnique sync.RWMutex
+	lockServiceMockUpdateMenu       sync.RWMutex
 )
 
 // Ensure, that ServiceMock does implement Service.
@@ -43,6 +44,9 @@ var _ Service = &ServiceMock{}
 //             IsMenuNameUniqueFunc: func(tx *sql.Tx, menuName string) (bool, error) {
 // 	               panic("mock out the IsMenuNameUnique method")
 //             },
+//             UpdateMenuFunc: func(tx *sql.Tx, menuID int, updateMenu *models.Menu) error {
+// 	               panic("mock out the UpdateMenu method")
+//             },
 //         }
 //
 //         // use mockedService in code that requires Service
@@ -64,6 +68,9 @@ type ServiceMock struct {
 
 	// IsMenuNameUniqueFunc mocks the IsMenuNameUnique method.
 	IsMenuNameUniqueFunc func(tx *sql.Tx, menuName string) (bool, error)
+
+	// UpdateMenuFunc mocks the UpdateMenu method.
+	UpdateMenuFunc func(tx *sql.Tx, menuID int, updateMenu *models.Menu) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -99,6 +106,15 @@ type ServiceMock struct {
 			Tx *sql.Tx
 			// MenuName is the menuName argument value.
 			MenuName string
+		}
+		// UpdateMenu holds details about calls to the UpdateMenu method.
+		UpdateMenu []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
+			// MenuID is the menuID argument value.
+			MenuID int
+			// UpdateMenu is the updateMenu argument value.
+			UpdateMenu *models.Menu
 		}
 	}
 }
@@ -271,5 +287,44 @@ func (mock *ServiceMock) IsMenuNameUniqueCalls() []struct {
 	lockServiceMockIsMenuNameUnique.RLock()
 	calls = mock.calls.IsMenuNameUnique
 	lockServiceMockIsMenuNameUnique.RUnlock()
+	return calls
+}
+
+// UpdateMenu calls UpdateMenuFunc.
+func (mock *ServiceMock) UpdateMenu(tx *sql.Tx, menuID int, updateMenu *models.Menu) error {
+	if mock.UpdateMenuFunc == nil {
+		panic("ServiceMock.UpdateMenuFunc: method is nil but Service.UpdateMenu was just called")
+	}
+	callInfo := struct {
+		Tx         *sql.Tx
+		MenuID     int
+		UpdateMenu *models.Menu
+	}{
+		Tx:         tx,
+		MenuID:     menuID,
+		UpdateMenu: updateMenu,
+	}
+	lockServiceMockUpdateMenu.Lock()
+	mock.calls.UpdateMenu = append(mock.calls.UpdateMenu, callInfo)
+	lockServiceMockUpdateMenu.Unlock()
+	return mock.UpdateMenuFunc(tx, menuID, updateMenu)
+}
+
+// UpdateMenuCalls gets all the calls that were made to UpdateMenu.
+// Check the length with:
+//     len(mockedService.UpdateMenuCalls())
+func (mock *ServiceMock) UpdateMenuCalls() []struct {
+	Tx         *sql.Tx
+	MenuID     int
+	UpdateMenu *models.Menu
+} {
+	var calls []struct {
+		Tx         *sql.Tx
+		MenuID     int
+		UpdateMenu *models.Menu
+	}
+	lockServiceMockUpdateMenu.RLock()
+	calls = mock.calls.UpdateMenu
+	lockServiceMockUpdateMenu.RUnlock()
 	return calls
 }

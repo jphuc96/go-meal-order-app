@@ -61,3 +61,14 @@ func (ms *menuService) FindByID(tx *sql.Tx, menuID int) (*models.Menu, error) {
 func (ms *menuService) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
 	return models.Menus(qm.OrderBy("created_at DESC")).One(context.Background(), tx)
 }
+
+func (ms *menuService) UpdateMenu(tx *sql.Tx, menuID int, updateMenu *models.Menu) error {
+	m, err := ms.FindByID(tx, menuID)
+	if err != nil {
+		return err
+	}
+
+	m = updateMenu
+	_, err = m.Update(context.Background(), tx, boil.Infer())
+	return err
+}
