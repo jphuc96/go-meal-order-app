@@ -132,7 +132,7 @@ func (a *App) CancelAllOrderOfUser(w http.ResponseWriter, r *http.Request) {
 func (a *App) GetPeopleInCharge(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
-
+	a.Handler.GetPeopleInCharge(w, r)
 }
 
 func (a *App) RunServer(host string) {
