@@ -96,7 +96,7 @@ func (a *App) CreateMenu(w http.ResponseWriter, r *http.Request) {
 func (a *App) ModifyMenuTime(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	a.Handler.ModifyMenuTime(w, r)
 }
 
 func (a *App) AddItemToMenu(w http.ResponseWriter, r *http.Request) {

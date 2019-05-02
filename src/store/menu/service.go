@@ -14,4 +14,5 @@ type Service interface {
 	IsMenuNameUnique(tx *sql.Tx, menuName string) (bool, error)
 	FindByID(tx *sql.Tx, menuID int) (*models.Menu, error)
 	GetLatestMenu(tx *sql.Tx) (*models.Menu, error)
+	UpdateMenu(tx *sql.Tx, menuID int, updateMenu *models.Menu) error
 }

@@ -15,3 +15,8 @@ type MenuReq struct {
 	Menu      MenuInput `json:"menu"`
 	ItemNames []string  `json:"item_names"`
 }
+
+type MenuTime struct {
+	Deadline        time.Time `json:"deadline"`
+	PaymentReminder time.Time `json:"payment_reminder"`
+}

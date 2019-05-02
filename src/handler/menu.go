@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
@@ -139,4 +142,56 @@ func (c *CoreHandler) CreateMenu(w http.ResponseWriter, r *http.Request) {
 	tx.Commit()
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(menuResp)
+}
+
+func (c *CoreHandler) ModifyMenuTime(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	menuID, err := strconv.Atoi(vars["MenuID"])
+	if err != nil {
+		handleHTTPError(domain.InvalidMenuID, http.StatusBadRequest, w)
+		return
+	}
+
+	menuTime := &domain.MenuTime{}
+	d := json.NewDecoder(r.Body)
+	err = d.Decode(&menuTime)
+	if err != nil {
+		handleHTTPError(err, http.StatusBadRequest, w)
+		return
+	}
+	defer r.Body.Close()
+
+	tx, err := c.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		handleHTTPError(err, http.StatusInternalServerError, w)
+		return
+	}
+
+	m, err := c.service.GetMenuByID(tx, menuID)
+	if err != nil {
+		tx.Rollback()
+		handleHTTPError(err, http.StatusInternalServerError, w)
+		return
+	}
+
+	if !menuTime.Deadline.IsZero() {
+		m.Deadline = menuTime.Deadline
+	}
+	if !menuTime.PaymentReminder.IsZero() {
+		m.PaymentReminder = menuTime.PaymentReminder
+	}
+
+	newMenu, err := c.service.UpdateMenu(tx, m)
+	if err != nil {
+		tx.Rollback()
+		handleHTTPError(err, http.StatusInternalServerError, w)
+		return
+	}
+
+	tx.Commit()
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(&domain.MenuTime{
+		Deadline:        newMenu.Deadline,
+		PaymentReminder: newMenu.PaymentReminder,
+	})
 }
