@@ -10,12 +10,13 @@ import (
 	"net/http"
 
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	"git.d.foundation/datcom/backend/src/domain"
 )
 
 const baseurl = "https://ke6qcmol32.execute-api.ap-southeast-1.amazonaws.com/stag/verify-email"
-const oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
+const oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v3/userinfo?access_token="
 
 func (s *Service) FortressVerify(email string) (*domain.FTResp, error) {
 
@@ -46,15 +47,26 @@ func (s *Service) FortressVerify(email string) (*domain.FTResp, error) {
 	return &ftresp, nil
 }
 
+func (s *Service) ConfigureOAuth2(clientID, clientSecret, redirectURL string) *oauth2.Config {
+	if redirectURL == "" {
+		redirectURL = "http://localhost:8000/auth/google/callback"
+	}
+	return &oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		RedirectURL:  redirectURL,
+		Scopes:       []string{"email", "profile"},
+		Endpoint:     google.Endpoint,
+	}
+}
+
 func (s *Service) RandToken() string {
 	b := make([]byte, 32)
 	rand.Read(b)
 	return base64.StdEncoding.EncodeToString(b)
 }
 
-func (s *Service) GetUserDataFromGoogle(googleOauthConfig *oauth2.Config, code string) (*domain.GoogleUserInfo, error) {
-	// Use code to get token and get user info from Google.
-
+func (s *Service) GetUserDataFromGoogle(googleOauthConfig *oauth2.Config, code string) ([]byte, error) {
 	token, err := googleOauthConfig.Exchange(context.Background(), code)
 	if err != nil {
 		return nil, fmt.Errorf("code exchange wrong: %s", err.Error())
@@ -69,7 +81,5 @@ func (s *Service) GetUserDataFromGoogle(googleOauthConfig *oauth2.Config, code s
 		return nil, fmt.Errorf("failed read response: %s", err.Error())
 	}
 
-	var userData domain.GoogleUserInfo
-	json.Unmarshal(contents, &userData)
-	return &userData, nil
+	return contents, nil
 }

@@ -6,29 +6,28 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 
 	"git.d.foundation/datcom/backend/src/domain"
 )
 
-func (c *CoreHandler) GetPeopleInCharge(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	menuID, err := strconv.Atoi(vars["MenuID"])
+func (c *CoreHandler) GetPeopleInCharge(g *gin.Context) {
+	menuID, err := strconv.Atoi(g.Param("MenuID"))
 	if err != nil {
-		handleHTTPError(domain.InvalidMenuID, http.StatusBadRequest, w)
+		handleHTTPError(domain.InvalidMenuID, http.StatusBadRequest, g.Writer)
 		return
 	}
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
 	users, err := c.service.GetAllOrderUserOfMenu(tx, menuID)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
@@ -40,14 +39,14 @@ func (c *CoreHandler) GetPeopleInCharge(w http.ResponseWriter, r *http.Request) 
 		})
 		if err != nil {
 			tx.Rollback()
-			handleHTTPError(err, http.StatusInternalServerError, w)
+			handleHTTPError(err, http.StatusInternalServerError, g.Writer)
 			return
 		}
 	}
 
 	tx.Commit()
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&domain.PICResp{
+	g.Writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(g.Writer).Encode(&domain.PICResp{
 		Users: picUsers,
 	})
 }

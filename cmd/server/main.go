@@ -33,5 +33,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app.RunServer(":" + listenPort)
+	app.RunServer("127.0.0.1:" + listenPort)
 }
