@@ -1,7 +1,7 @@
 package domain
 
 type AuthConfig struct {
-	RedirectURI string `json:"redirect_uri,omitempty"`
+	RedirectURL string `json:"redirect_url,omitempty"`
 	ClientID    string `json:"client_id,omitempty"`
 	State       string `json:"state"`
 }

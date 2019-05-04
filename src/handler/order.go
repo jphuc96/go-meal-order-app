@@ -18,7 +18,7 @@ func (c *CoreHandler) GetOrdersOfUser(g *gin.Context) {
 	userID := g.Param("UserID")
 	items, err := c.service.GetOrdersByMenuAndUser(menuID, userID)
 	if err != nil {
-		handleHTTPError(err, http.StatusBadRequest, g.Writer)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
 
@@ -42,14 +42,14 @@ func (c *CoreHandler) CreateOrModifyOrder(g *gin.Context) {
 
 	err := d.Decode(&newItems)
 	if err != nil {
-		handleHTTPError(err, http.StatusBadRequest, g.Writer)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
 	defer g.Request.Body.Close()
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 	}
 
 	// Check if all requested items exist
@@ -57,7 +57,7 @@ func (c *CoreHandler) CreateOrModifyOrder(g *gin.Context) {
 	for _, item := range newItems.ItemIDs {
 		exist, err := c.service.CheckItemExist(tx, item)
 		if err != nil {
-			handleHTTPError(err, http.StatusInternalServerError, g.Writer)
+			c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 			return
 		}
 
@@ -67,28 +67,28 @@ func (c *CoreHandler) CreateOrModifyOrder(g *gin.Context) {
 	}
 
 	if len(invalidItemID) != 0 {
-		handleHTTPError(fmt.Errorf("invalid value: %v", invalidItemID), http.StatusBadRequest, g.Writer)
+		c.HandleHTTPError(fmt.Errorf("invalid value: %v", invalidItemID), http.StatusBadRequest, g.Writer)
 		return
 	}
 
 	_, err = c.deleteAllOrdersByMenuAndUser(tx, menuID, userID)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusBadRequest, g.Writer)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
 	tx.Commit()
 
 	tx, err = c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 	}
 
 	// var orderResp domain.OrderResp
 	for _, itemID := range newItems.ItemIDs {
 		userIDInt, err := strconv.Atoi(userID)
 		if err != nil {
-			handleHTTPError(err, http.StatusBadRequest, g.Writer)
+			c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 			return
 		}
 
@@ -98,7 +98,7 @@ func (c *CoreHandler) CreateOrModifyOrder(g *gin.Context) {
 		})
 		if err != nil {
 			tx.Rollback()
-			handleHTTPError(err, http.StatusBadRequest, g.Writer)
+			c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 			return
 		}
 	}
@@ -113,13 +113,13 @@ func (c *CoreHandler) CancelAllOrderOfUser(g *gin.Context) {
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 	}
 
 	delItems, err := c.deleteAllOrdersByMenuAndUser(tx, menuID, userID)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusBadRequest, g.Writer)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
 

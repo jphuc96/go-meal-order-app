@@ -4,11 +4,10 @@ import (
 	"git.d.foundation/datcom/backend/models"
 )
 
-type CreateUserInput struct {
-	Name     string `json:"name,omitempty"`
-	GoogleID string `json:"google_id,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Token    string `json:"token,omitempty"`
+type UserInput struct {
+	Name  string `json:"name,omitempty"`
+	Email string `json:"email,omitempty"`
+	Token string `json:"token,omitempty"`
 }
 
 type CreateaUserOutput struct {

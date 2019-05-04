@@ -22,6 +22,9 @@ var (
 	InvalidItemID     = errors.New("invalid item_id")
 	InvalidUserID     = errors.New("invalid user_id")
 	InvalidOAuthState = errors.New("invalid OAuth state")
+	VerifyUserFailed  = errors.New("verifying user failed, try again")
+	NotProvideEmail   = errors.New("email was not provided")
+	NotProvideToken   = errors.New("token was not provided")
 )
 
 type ErrorResponse struct {

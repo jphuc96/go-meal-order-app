@@ -1,32 +1,7 @@
 ## Lunch Order REST API
 
-#### /auth/google
-- GET: Verify access token
-    - Request:
-        ```json
-        {
-            "email" : "token",
-            "token" : "string"
-        }
-        ```
-    - Response:
-        - status code: 200(OK) / 401(Unauthorized)
-
-#### /auth/google/logout
-- GET: Logout 
-    - Request:
-        ```json
-        {
-            "email" : "token",
-            "token" : "string"
-        }
-        ```
-    - Response:
-        - status code: 200
-
-#### /auth/google/login-url
-
-- GET: Generate Google Login URL
+#### /auth/google.login
+- GET: Login with oauth2
     - Request:
         ```json
         {}
@@ -34,35 +9,51 @@
     - Response:
         ```json
         {
-            "redirect_url" : "string",
-            "token" : "string",
+            "redirect_url" : "url",
             "client_id" : "string",
+            "state" : "string"
         }
         ```
 
+#### /auth/google/logout
+- POST: Logout 
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
+    - Request:
+        ```json
+        {}
+        ```
+    - Response:
+        - status code: 200
+
 #### /auth/google/callback
 
-- GET: Verify user login
+- GET: Handle oauth2 callback
+    - Header: 
+        - state: state param from login response
     - Request:
         ```json
         {
-            "email" : "string",
-            "token" : "string",
+            "email" : "example@gmail.com"
         }
         ```
     - Response:
         ```json
-        {
+        {   
             "id" : 0,
             "name" : "string",
-            "email" : "string",
-            "token" : "string"
+            "email" : "example@gmail.com",
+            "token" : "string",
         }
         ```
 
 #### /menus
 
 - GET: Get latest menu
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
     - Request:
         ```json
         {}
@@ -100,6 +91,9 @@
         ```
 
 - POST: Create menu
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
     - Request:
         ```json
         {   "menu" : {
@@ -134,6 +128,9 @@
 #### /menus/{MenuID}/time
 
 - POST: Modify menu's deadline and payment time
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
     - Request:
         ```json
             {
@@ -152,6 +149,9 @@
 #### /menus/{MenuID}/items
 
 - POST: Add an items to menu
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
     - Request:
         ```json
         {
@@ -172,6 +172,9 @@
 #### /items/{ItemID}
 
 - DELETE: Delete an item from menu
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
     - Request:
         ```json
         {}
@@ -190,6 +193,9 @@
 #### /menus/{MenuID}/users/{UserID}/orders
 
 - GET: Get orders of an user
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
     - Request:
         ```json
         {}
@@ -207,6 +213,9 @@
         }
         ```
 - POST: Create/Modify orders
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
     - Request:
         ```json
         {
@@ -225,6 +234,9 @@
         }
         ```
 - DELETE: Cancel all orders of user
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
     - Request:
         ```json
         {}
@@ -244,6 +256,9 @@
 #### /menus/{MenuID}/people-in-charge
 
 - GET: Get people in charge of the menu
+    - Header: 
+        - email: example@gmai.com
+        - access_token: [base64_token]
     - Request:
         ```json
         {}

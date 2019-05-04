@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
-	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 
 	"git.d.foundation/datcom/backend/src/domain"
@@ -16,108 +16,106 @@ const (
 
 func (c *CoreHandler) GoogleLogin(g *gin.Context) {
 	State = c.service.RandToken()
-	session := sessions.Default(g)
-	session.Set("state", State)
-	err := session.Save()
-	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
-	}
-
 	url := OAuthConfig.AuthCodeURL(State)
 
-	g.Redirect(http.StatusTemporaryRedirect, url)
+	g.Writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(g.Writer).Encode(&domain.AuthConfig{
+		RedirectURL: url,
+		ClientID:    OAuthConfig.ClientID,
+		State:       State,
+	})
+	// g.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (c *CoreHandler) GoogleLogout(g *gin.Context) {
+	tx, err := c.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		return
+	}
+
+	err = c.service.UpdateUserToken(tx, &domain.UserInput{
+		Email: g.Request.Header.Get("email"),
+		Token: g.Request.Header.Get("access_token"),
+	}, "")
+	if err != nil {
+		tx.Rollback()
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		return
+	}
+
+	tx.Commit()
+	g.Writer.WriteHeader(http.StatusOK)
 }
 
 func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
-	session := sessions.Default(g)
-
-	getState := session.Get("state")
 	queryState := g.Request.URL.Query().Get("state")
-	if getState != queryState {
-		handleHTTPError(domain.InvalidOAuthState, http.StatusUnauthorized, g.Writer)
+	if State != queryState {
+		c.HandleHTTPError(domain.InvalidOAuthState, http.StatusUnauthorized, g.Writer)
 		return
 	}
 
 	code := g.Request.URL.Query().Get("code")
 	data, err := c.service.GetUserDataFromGoogle(OAuthConfig, code)
-	if getState != queryState {
-		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
-		return
-	}
 
 	googleUser := domain.GoogleUser{}
 	if err = json.Unmarshal(data, &googleUser); err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
-	session.Set("user-email", googleUser.Email)
-	err = session.Save()
+	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		return
 	}
 
-	json.NewEncoder(g.Writer).Encode(googleUser)
-	// tx, err := c.db.BeginTx(context.Background(), nil)
-	// if err != nil {
-	// 	handleHTTPError(err, http.StatusInternalServerError, g.Writer)
-	// 	return
-	// }
-	// // Check user in db
-	// dbUser, _ := c.service.GetUserByEmail(tx, googleUser.Email)
-	// if dbUser != nil {
-	// 	if newToken[0] != dbUser.Token {
-	// 		// If logged out or login in new device, update new token to record
-	// 		err := c.service.UpdateUserToken(tx, &domain.CreateUserInput{
-	// 			Email: dbUser.Email,
-	// 			Token: dbUser.Token,
-	// 		}, newToken[0])
+	// Check user in db
+	dbUser, _ := c.service.GetUserByEmail(tx, googleUser.Email)
+	if dbUser != nil {
+		// if logged out
+		if dbUser.Token == "" {
+			err := c.service.UpdateUserToken(tx, &domain.UserInput{
+				Email: dbUser.Email,
+				Token: dbUser.Token,
+			}, c.service.RandToken())
+			if err != nil {
+				tx.Rollback()
+				c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
+				return
+			}
+			dbUser, _ = c.service.GetUserByEmail(tx, googleUser.Email)
+		}
 
-	// 		if err != nil {
-	// 			tx.Rollback()
-	// 			handleHTTPError(err, http.StatusInternalServerError, g.Writer)
-	// 			return
-	// 		}
-	// 		dbUser, err = c.service.GetUserByEmail(tx, googleUser.Email)
-	// 		if err != nil {
-	// 			tx.Rollback()
-	// 			handleHTTPError(err, http.StatusInternalServerError, g.Writer)
-	// 			return
-	// 		}
+		tx.Commit()
+		json.NewEncoder(g.Writer).Encode(domain.UserOutputMapping(dbUser))
+		return
+	}
 
-	// 	}
-	// 	tx.Commit()
-	// 	json.NewEncoder(g.Writer).Encode(domain.UserOutputMapping(dbUser))
-	// 	return
-	// }
+	// if user is new, check with Fortress before decide to create user or not
+	ftUser, err := c.service.FortressVerify(googleUser.Email)
+	if err != nil {
+		c.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 
-	// // if user is new, check with Fortress before decide to create user or not
-	// ftUser, err := c.service.FortressVerify(googleUser.Email)
-	// if err != nil {
-	// 	handleHTTPError(err, http.StatusBadRequest, g.Writer)
-	// 	return
-	// }
+	tx, err = c.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		return
+	}
 
-	// tx, err = c.db.BeginTx(context.Background(), nil)
-	// if err != nil {
-	// 	handleHTTPError(err, http.StatusInternalServerError, g.Writer)
-	// 	return
-	// }
+	dbUser, err = c.service.CreateUser(tx, &domain.UserInput{
+		Name:  ftUser.Name,
+		Email: ftUser.Email,
+		Token: c.service.RandToken(),
+	})
+	if err != nil {
+		tx.Rollback()
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
+		return
+	}
 
-	// dbUser, err = c.service.CreateUser(tx, &domain.CreateUserInput{
-	// 	Name:  ftUser.Name,
-	// 	Email: ftUser.Email,
-	// 	Token: newToken[0],
-	// })
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	handleHTTPError(err, http.StatusBadRequest, g.Writer)
-	// 	return
-	// }
-
-	// tx.Commit()
-	// json.NewEncoder(g.Writer).Encode(domain.UserOutputMapping(dbUser))
+	tx.Commit()
+	json.NewEncoder(g.Writer).Encode(domain.UserOutputMapping(dbUser))
 }

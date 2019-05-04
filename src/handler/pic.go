@@ -14,20 +14,20 @@ import (
 func (c *CoreHandler) GetPeopleInCharge(g *gin.Context) {
 	menuID, err := strconv.Atoi(g.Param("MenuID"))
 	if err != nil {
-		handleHTTPError(domain.InvalidMenuID, http.StatusBadRequest, g.Writer)
+		c.HandleHTTPError(domain.InvalidMenuID, http.StatusBadRequest, g.Writer)
 		return
 	}
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
 	users, err := c.service.GetAllOrderUserOfMenu(tx, menuID)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
@@ -39,7 +39,7 @@ func (c *CoreHandler) GetPeopleInCharge(g *gin.Context) {
 		})
 		if err != nil {
 			tx.Rollback()
-			handleHTTPError(err, http.StatusInternalServerError, g.Writer)
+			c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 			return
 		}
 	}

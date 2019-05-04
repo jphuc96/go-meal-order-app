@@ -7,7 +7,7 @@ import (
 	"git.d.foundation/datcom/backend/src/domain"
 )
 
-func handleHTTPError(err error, statusCode int, w http.ResponseWriter) {
+func (c *CoreHandler) HandleHTTPError(err error, statusCode int, w http.ResponseWriter) {
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(&domain.ErrorResponse{
 		Error: struct {

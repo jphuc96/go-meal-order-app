@@ -35,7 +35,7 @@ func (s *Service) FortressVerify(email string) (*domain.FTResp, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode == 400 {
+	if resp.StatusCode == http.StatusBadRequest {
 		return nil, domain.UserNotExistInFT
 	}
 
@@ -82,4 +82,22 @@ func (s *Service) GetUserDataFromGoogle(googleOauthConfig *oauth2.Config, code s
 	}
 
 	return contents, nil
+}
+
+func (s *Service) AuthCheck(r *http.Request) error {
+	email := r.Header.Get("email")
+	accessToken := r.Header.Get("access_token")
+	if email == "" {
+		return domain.NotProvideEmail
+	}
+	if accessToken == "" {
+		return domain.NotProvideToken
+	}
+
+	exist, _ := s.Store.UserStore.ExistByEmailAndToken(email, accessToken)
+	if !exist {
+		return domain.VerifyUserFailed
+	}
+
+	return nil
 }

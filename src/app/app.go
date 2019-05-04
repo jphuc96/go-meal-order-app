@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ import (
 // App struct for router and db
 type App struct {
 	Router  *gin.Engine
+	Service *service.Service
 	Handler *handler.CoreHandler
 }
 
@@ -49,8 +51,8 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 	log.Println("password: " + dbConfig.Password)
 	log.Println("ssl mode: " + dbConfig.SSLMode)
 
-	svc := service.NewService(db)
-	a.Handler = handler.NewCoreHandler(svc, db)
+	a.Service = service.NewService(db)
+	a.Handler = handler.NewCoreHandler(a.Service, db)
 
 	a.Router = gin.Default()
 	a.Router.Use(sessions.Sessions("default", SessionStore))
@@ -83,6 +85,11 @@ func (a *App) GoogleLogin(g *gin.Context) {
 func (a *App) GoogleLogout(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.GoogleLogout(g)
 }
 
@@ -95,54 +102,99 @@ func (a *App) GoogleOauthCallback(g *gin.Context) {
 func (a *App) GetLatestMenu(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.GetLatestMenu(g)
 }
 
 func (a *App) CreateMenu(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.CreateMenu(g)
 }
 
 func (a *App) ModifyMenuTime(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.ModifyMenuTime(g)
 }
 
 func (a *App) AddItemToMenu(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.AddItemToMenu(g)
 }
 
 func (a *App) DeleteItemFromMenu(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.DeleteItemFromMenu(g)
 }
 
 func (a *App) GetOrdersOfUser(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.GetOrdersOfUser(g)
 }
 
 func (a *App) CreateOrModifyOrder(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.CreateOrModifyOrder(g)
 }
 
 func (a *App) CancelAllOrderOfUser(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.CancelAllOrderOfUser(g)
 }
 
 func (a *App) GetPeopleInCharge(g *gin.Context) {
 	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
 	a.Handler.GetPeopleInCharge(g)
 }
 
