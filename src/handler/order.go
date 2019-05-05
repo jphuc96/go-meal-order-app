@@ -8,18 +8,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 
 	"git.d.foundation/datcom/backend/src/domain"
 )
 
-func (c *CoreHandler) GetOrdersOfUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	menuID := vars["MenuID"]
-	userID := vars["UserID"]
+func (c *CoreHandler) GetOrdersOfUser(g *gin.Context) {
+	menuID := g.Param("MenuID")
+	userID := g.Param("UserID")
 	items, err := c.service.GetOrdersByMenuAndUser(menuID, userID)
 	if err != nil {
-		handleHTTPError(err, http.StatusBadRequest, w)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
 
@@ -29,29 +28,28 @@ func (c *CoreHandler) GetOrdersOfUser(w http.ResponseWriter, r *http.Request) {
 		itemsRes[i].Name = item.ItemName
 	}
 
-	json.NewEncoder(w).Encode(&domain.OrderResp{
+	json.NewEncoder(g.Writer).Encode(&domain.OrderResp{
 		Items: itemsRes,
 	})
 }
 
-func (c *CoreHandler) CreateOrModifyOrder(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	menuID := vars["MenuID"]
-	userID := vars["UserID"]
+func (c *CoreHandler) CreateOrModifyOrder(g *gin.Context) {
+	menuID := g.Param("MenuID")
+	userID := g.Param("UserID")
 
 	var newItems domain.OrderReq
-	d := json.NewDecoder(r.Body)
+	d := json.NewDecoder(g.Request.Body)
 
 	err := d.Decode(&newItems)
 	if err != nil {
-		handleHTTPError(err, http.StatusBadRequest, w)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
-	defer r.Body.Close()
+	defer g.Request.Body.Close()
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 	}
 
 	// Check if all requested items exist
@@ -59,7 +57,7 @@ func (c *CoreHandler) CreateOrModifyOrder(w http.ResponseWriter, r *http.Request
 	for _, item := range newItems.ItemIDs {
 		exist, err := c.service.CheckItemExist(tx, item)
 		if err != nil {
-			handleHTTPError(err, http.StatusInternalServerError, w)
+			c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 			return
 		}
 
@@ -69,28 +67,28 @@ func (c *CoreHandler) CreateOrModifyOrder(w http.ResponseWriter, r *http.Request
 	}
 
 	if len(invalidItemID) != 0 {
-		handleHTTPError(fmt.Errorf("invalid value: %v", invalidItemID), http.StatusBadRequest, w)
+		c.HandleHTTPError(fmt.Errorf("invalid value: %v", invalidItemID), http.StatusBadRequest, g.Writer)
 		return
 	}
 
 	_, err = c.deleteAllOrdersByMenuAndUser(tx, menuID, userID)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusBadRequest, w)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
 	tx.Commit()
 
 	tx, err = c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 	}
 
 	// var orderResp domain.OrderResp
 	for _, itemID := range newItems.ItemIDs {
 		userIDInt, err := strconv.Atoi(userID)
 		if err != nil {
-			handleHTTPError(err, http.StatusBadRequest, w)
+			c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 			return
 		}
 
@@ -100,29 +98,28 @@ func (c *CoreHandler) CreateOrModifyOrder(w http.ResponseWriter, r *http.Request
 		})
 		if err != nil {
 			tx.Rollback()
-			handleHTTPError(err, http.StatusBadRequest, w)
+			c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 			return
 		}
 	}
 
 	tx.Commit()
-	c.GetOrdersOfUser(w, r)
+	c.GetOrdersOfUser(g)
 }
 
-func (c *CoreHandler) CancelAllOrderOfUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	menuID := vars["MenuID"]
-	userID := vars["UserID"]
+func (c *CoreHandler) CancelAllOrderOfUser(g *gin.Context) {
+	menuID := g.Param("MenuID")
+	userID := g.Param("UserID")
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 	}
 
 	delItems, err := c.deleteAllOrdersByMenuAndUser(tx, menuID, userID)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusBadRequest, w)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
 
@@ -135,7 +132,7 @@ func (c *CoreHandler) CancelAllOrderOfUser(w http.ResponseWriter, r *http.Reques
 	}
 
 	tx.Commit()
-	json.NewEncoder(w).Encode(orderResp)
+	json.NewEncoder(g.Writer).Encode(orderResp)
 }
 
 func (c *CoreHandler) deleteAllOrdersByMenuAndUser(tx *sql.Tx, menuID string, userID string) ([]*domain.Item, error) {

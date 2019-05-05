@@ -12,7 +12,7 @@ var (
 	re = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 )
 
-func (s *Service) CreateUser(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error) {
+func (s *Service) CreateUser(tx *sql.Tx, p *domain.UserInput) (*models.User, error) {
 
 	if !(re.MatchString(p.Email)) {
 		return nil, domain.InvalidEmail
@@ -34,11 +34,11 @@ func (s *Service) GetAllUser() ([]*models.User, error) {
 }
 
 func (s *Service) GetUserByEmail(tx *sql.Tx, m string) (*models.User, error) {
-	return s.Store.UserStore.Find(tx, &domain.CreateUserInput{
+	return s.Store.UserStore.Find(tx, &domain.UserInput{
 		Email: m,
 	})
 }
 
-func (s *Service) UpdateUserToken(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error {
+func (s *Service) UpdateUserToken(tx *sql.Tx, p *domain.UserInput, newToken string) error {
 	return s.Store.UserStore.UpdateToken(tx, p, newToken)
 }

@@ -22,7 +22,7 @@ func NewService(db *sql.DB) Service {
 	}
 }
 
-func userInputToDBMapping(p *domain.CreateUserInput) *models.User {
+func userInputToDBMapping(p *domain.UserInput) *models.User {
 	return &models.User{
 		Name:  p.Name,
 		Email: p.Email,
@@ -30,7 +30,7 @@ func userInputToDBMapping(p *domain.CreateUserInput) *models.User {
 	}
 }
 
-func (us *userService) Create(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error) {
+func (us *userService) Create(tx *sql.Tx, p *domain.UserInput) (*models.User, error) {
 	u := userInputToDBMapping(p)
 	err := u.Insert(context.Background(), tx, boil.Infer())
 	if err != nil {
@@ -39,11 +39,11 @@ func (us *userService) Create(tx *sql.Tx, p *domain.CreateUserInput) (*models.Us
 	return us.Find(tx, p)
 }
 
-func (us *userService) Exist(p *domain.CreateUserInput) (bool, error) {
+func (us *userService) Exist(p *domain.UserInput) (bool, error) {
 	return models.Users(qm.Where("email=?", p.Email)).Exists(context.Background(), us.db)
 }
 
-func (us *userService) Find(tx *sql.Tx, p *domain.CreateUserInput) (*models.User, error) {
+func (us *userService) Find(tx *sql.Tx, p *domain.UserInput) (*models.User, error) {
 	user, err := models.Users(qm.Where("email=?", p.Email)).One(context.Background(), tx)
 	return user, err
 }
@@ -53,7 +53,7 @@ func (us *userService) FindAll() ([]*models.User, error) {
 	return users, err
 }
 
-func (us *userService) UpdateToken(tx *sql.Tx, p *domain.CreateUserInput, newToken string) error {
+func (us *userService) UpdateToken(tx *sql.Tx, p *domain.UserInput, newToken string) error {
 	user, err := models.Users(qm.Where("email=? AND token=?", p.Email, p.Token)).One(context.Background(), us.db)
 	if err != nil {
 		return err
@@ -65,4 +65,8 @@ func (us *userService) UpdateToken(tx *sql.Tx, p *domain.CreateUserInput, newTok
 
 func (us *userService) GetByID(tx *sql.Tx, userID int) (*models.User, error) {
 	return models.FindUser(context.Background(), tx, userID)
+}
+
+func (us *userService) ExistByEmailAndToken(email, token string) (bool, error) {
+	return models.Users(qm.Where("email=? AND token=?", email, token)).Exists(context.Background(), us.db)
 }

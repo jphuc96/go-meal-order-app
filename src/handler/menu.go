@@ -6,19 +6,19 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 )
 
-func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
+func (c *CoreHandler) GetLatestMenu(g *gin.Context) {
 
 	menuResp := &domain.MenuResp{}
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
@@ -26,7 +26,7 @@ func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 	latestMenu, err = c.service.GetLatestMenu(tx)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 	// if no menu today
@@ -37,7 +37,7 @@ func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 	menuItems, err := c.service.GetAllItemsByMenuID(tx, latestMenu.ID)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
@@ -47,7 +47,7 @@ func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 		users, err := c.service.GetOrderUsersByItem(tx, item.ID)
 		if err != nil {
 			tx.Rollback()
-			handleHTTPError(err, http.StatusInternalServerError, w)
+			c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 			return
 		}
 
@@ -69,7 +69,7 @@ func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 	menuPIC, err := c.service.GetPICByMenuID(tx, latestMenu.ID)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 		user, err := c.service.GetUserbyPIC(tx, pic)
 		if err != nil {
 			tx.Rollback()
-			handleHTTPError(err, http.StatusInternalServerError, w)
+			c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 			return
 		}
 		respPIC = append(respPIC, domain.MenuPIC{
@@ -92,29 +92,29 @@ func (c *CoreHandler) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
 	menuResp.PeopleInCharge = respPIC
 
 	tx.Commit()
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&menuResp)
+	g.Writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(g.Writer).Encode(&menuResp)
 }
 
-func (c *CoreHandler) CreateMenu(w http.ResponseWriter, r *http.Request) {
-	d := json.NewDecoder(r.Body)
-	defer r.Body.Close()
+func (c *CoreHandler) CreateMenu(g *gin.Context) {
+	d := json.NewDecoder(g.Request.Body)
+	defer g.Request.Body.Close()
 	menuReq := &domain.MenuReq{}
 	err := d.Decode(&menuReq)
 	if err != nil {
-		handleHTTPError(err, http.StatusBadRequest, w)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 	}
 
 	menu, err := c.service.CreateMenu(tx, &menuReq.Menu)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusBadRequest, w)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
 
@@ -123,7 +123,7 @@ func (c *CoreHandler) CreateMenu(w http.ResponseWriter, r *http.Request) {
 		item, err := c.service.AddItemToMenu(tx, itemName, menu.ID)
 		if err != nil {
 			tx.Rollback()
-			handleHTTPError(err, http.StatusInternalServerError, w)
+			c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 			return
 		}
 		menuItems = append(menuItems, domain.MenuItem{
@@ -140,37 +140,36 @@ func (c *CoreHandler) CreateMenu(w http.ResponseWriter, r *http.Request) {
 	menuResp.Menu.Status = 1
 
 	tx.Commit()
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(menuResp)
+	g.Writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(g.Writer).Encode(menuResp)
 }
 
-func (c *CoreHandler) ModifyMenuTime(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	menuID, err := strconv.Atoi(vars["MenuID"])
+func (c *CoreHandler) ModifyMenuTime(g *gin.Context) {
+	menuID, err := strconv.Atoi(g.Param("MenuID"))
 	if err != nil {
-		handleHTTPError(domain.InvalidMenuID, http.StatusBadRequest, w)
+		c.HandleHTTPError(domain.InvalidMenuID, http.StatusBadRequest, g.Writer)
 		return
 	}
 
 	menuTime := &domain.MenuTime{}
-	d := json.NewDecoder(r.Body)
+	d := json.NewDecoder(g.Request.Body)
 	err = d.Decode(&menuTime)
 	if err != nil {
-		handleHTTPError(err, http.StatusBadRequest, w)
+		c.HandleHTTPError(err, http.StatusBadRequest, g.Writer)
 		return
 	}
-	defer r.Body.Close()
+	defer g.Request.Body.Close()
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
 	m, err := c.service.GetMenuByID(tx, menuID)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
@@ -184,13 +183,13 @@ func (c *CoreHandler) ModifyMenuTime(w http.ResponseWriter, r *http.Request) {
 	newMenu, err := c.service.UpdateMenu(tx, m)
 	if err != nil {
 		tx.Rollback()
-		handleHTTPError(err, http.StatusInternalServerError, w)
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
 	tx.Commit()
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&domain.MenuTime{
+	g.Writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(g.Writer).Encode(&domain.MenuTime{
 		Deadline:        newMenu.Deadline,
 		PaymentReminder: newMenu.PaymentReminder,
 	})

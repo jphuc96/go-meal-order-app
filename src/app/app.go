@@ -6,7 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/contrib/sessions"
+	"github.com/gin-gonic/gin"
 
 	"git.d.foundation/datcom/backend/src/handler"
 	"git.d.foundation/datcom/backend/src/service"
@@ -14,7 +15,8 @@ import (
 
 // App struct for router and db
 type App struct {
-	Router  *mux.Router
+	Router  *gin.Engine
+	Service *service.Service
 	Handler *handler.CoreHandler
 }
 
@@ -26,6 +28,8 @@ type DBConfig struct {
 	DBName   string
 	SSLMode  string
 }
+
+var SessionStore = sessions.NewCookieStore([]byte("secret"))
 
 func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 
@@ -47,95 +51,154 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 	log.Println("password: " + dbConfig.Password)
 	log.Println("ssl mode: " + dbConfig.SSLMode)
 
-	svc := service.NewService(db)
-	a.Handler = handler.NewCoreHandler(svc, db)
-	a.Router = mux.NewRouter()
+	a.Service = service.NewService(db)
+	a.Handler = handler.NewCoreHandler(a.Service, db)
+
+	a.Router = gin.Default()
+	a.Router.Use(sessions.Sessions("default", SessionStore))
 	a.SetRouters()
 
 	return a, nil
 }
 
 func (a *App) SetRouters() {
-	a.Router.HandleFunc("/auth/google/login-url", a.GetGoogleLoginURL).Methods("GET")
-	a.Router.HandleFunc("/auth/google/callback", a.VerifyGoogleUserLogin).Methods("GET")
-	a.Router.HandleFunc("/menus", a.GetLatestMenu).Methods("GET")
-	a.Router.HandleFunc("/menus", a.CreateMenu).Methods("POST")
-	a.Router.HandleFunc("/menus/{MenuID}/time", a.ModifyMenuTime).Methods("POST")
-	a.Router.HandleFunc("/menus/{MenuID}/items", a.AddItemToMenu).Methods("POST")
-	a.Router.HandleFunc("/items/{ItemID}", a.DeleteItemFromMenu).Methods("DELETE")
-	a.Router.HandleFunc("/menus/{MenuID}/users/{UserID}/orders", a.GetOrdersOfUser).Methods("GET")
-	a.Router.HandleFunc("/menus/{MenuID}/users/{UserID}/orders", a.CreateOrModifyOrder).Methods("POST")
-	a.Router.HandleFunc("/menus/{MenuID}/users/{UserID}/orders", a.CancelAllOrderOfUser).Methods("DELETE")
-	a.Router.HandleFunc("/menus/{MenuID}/people-in-charge", a.GetPeopleInCharge).Methods("GET")
+	a.Router.GET("/auth/google/login", a.GoogleLogin)
+	a.Router.POST("/auth/google/logout", a.GoogleLogout)
+	a.Router.GET("/auth/google/callback", a.GoogleOauthCallback)
+	a.Router.GET("/menus", a.GetLatestMenu)
+	a.Router.POST("/menus", a.CreateMenu)
+	a.Router.POST("/menus/:MenuID/time", a.ModifyMenuTime)
+	a.Router.POST("/menus/:MenuID/items", a.AddItemToMenu)
+	a.Router.DELETE("/items/:ItemID", a.DeleteItemFromMenu)
+	a.Router.GET("/menus/:MenuID/users/:UserID/orders", a.GetOrdersOfUser)
+	a.Router.POST("/menus/:MenuID/users/:UserID/orders", a.CreateOrModifyOrder)
+	a.Router.DELETE("/menus/:MenuID/users/:UserID/orders", a.CancelAllOrderOfUser)
+	a.Router.GET("/menus/:MenuID/people-in-charge", a.GetPeopleInCharge)
 }
 
-func (a *App) GetGoogleLoginURL(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.GetGoogleLoginURL(w, r)
+func (a *App) GoogleLogin(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	a.Handler.GoogleLogin(g)
 }
 
-func (a *App) VerifyGoogleUserLogin(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.VerifyGoogleUserLogin(w, r)
+func (a *App) GoogleLogout(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.GoogleLogout(g)
 }
 
-func (a *App) GetLatestMenu(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.GetLatestMenu(w, r)
+func (a *App) GoogleOauthCallback(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	a.Handler.GoogleOauthCallback(g)
 }
 
-func (a *App) CreateMenu(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.CreateMenu(w, r)
+func (a *App) GetLatestMenu(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.GetLatestMenu(g)
 }
 
-func (a *App) ModifyMenuTime(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.ModifyMenuTime(w, r)
+func (a *App) CreateMenu(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.CreateMenu(g)
 }
 
-func (a *App) AddItemToMenu(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.AddItemToMenu(w, r)
+func (a *App) ModifyMenuTime(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.ModifyMenuTime(g)
 }
 
-func (a *App) DeleteItemFromMenu(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.DeleteItemFromMenu(w, r)
+func (a *App) AddItemToMenu(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.AddItemToMenu(g)
 }
 
-func (a *App) GetOrdersOfUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.GetOrdersOfUser(w, r)
+func (a *App) DeleteItemFromMenu(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.DeleteItemFromMenu(g)
 }
 
-func (a *App) CreateOrModifyOrder(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.CreateOrModifyOrder(w, r)
+func (a *App) GetOrdersOfUser(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.GetOrdersOfUser(g)
 }
 
-func (a *App) CancelAllOrderOfUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.CancelAllOrderOfUser(w, r)
+func (a *App) CreateOrModifyOrder(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.CreateOrModifyOrder(g)
 }
 
-func (a *App) GetPeopleInCharge(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-	a.Handler.GetPeopleInCharge(w, r)
+func (a *App) CancelAllOrderOfUser(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.CancelAllOrderOfUser(g)
+}
+
+func (a *App) GetPeopleInCharge(g *gin.Context) {
+	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	g.Writer.Header().Set("Content-Type", "application/json")
+	err := a.Service.AuthCheck(g.Request)
+	if err != nil {
+		a.Handler.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	a.Handler.GetPeopleInCharge(g)
 }
 
 func (a *App) RunServer(host string) {
 	log.Println("server is running at " + host)
-	log.Fatal(http.ListenAndServe(host, a.Router))
+	log.Fatal(a.Router.Run(host))
 }

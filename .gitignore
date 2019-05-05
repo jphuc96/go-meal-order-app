@@ -54,3 +54,4 @@ coverage.html
 db-local.env
 db-heroku.env
 config.env
+docker.env
