@@ -24,7 +24,6 @@ func (c *CoreHandler) GoogleLogin(g *gin.Context) {
 		ClientID:    OAuthConfig.ClientID,
 		State:       State,
 	})
-	// g.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (c *CoreHandler) GoogleLogout(g *gin.Context) {
@@ -49,18 +48,15 @@ func (c *CoreHandler) GoogleLogout(g *gin.Context) {
 }
 
 func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
-	queryState := g.Request.URL.Query().Get("state")
+	queryState := g.Request.Header.Get("state")
 	if State != queryState {
 		c.HandleHTTPError(domain.InvalidOAuthState, http.StatusUnauthorized, g.Writer)
 		return
 	}
 
-	code := g.Request.URL.Query().Get("code")
-	data, err := c.service.GetUserDataFromGoogle(OAuthConfig, code)
-
-	googleUser := domain.GoogleUser{}
-	if err = json.Unmarshal(data, &googleUser); err != nil {
-		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
+	email := g.Request.Header.Get("email")
+	if email == "" {
+		c.HandleHTTPError(domain.NotProvideEmail, http.StatusUnauthorized, g.Writer)
 		return
 	}
 
@@ -71,7 +67,7 @@ func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
 	}
 
 	// Check user in db
-	dbUser, _ := c.service.GetUserByEmail(tx, googleUser.Email)
+	dbUser, _ := c.service.GetUserByEmail(tx, email)
 	if dbUser != nil {
 		// if logged out
 		if dbUser.Token == "" {
@@ -84,7 +80,7 @@ func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
 				c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 				return
 			}
-			dbUser, _ = c.service.GetUserByEmail(tx, googleUser.Email)
+			dbUser, _ = c.service.GetUserByEmail(tx, email)
 		}
 
 		tx.Commit()
@@ -93,7 +89,7 @@ func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
 	}
 
 	// if user is new, check with Fortress before decide to create user or not
-	ftUser, err := c.service.FortressVerify(googleUser.Email)
+	ftUser, err := c.service.FortressVerify(email)
 	if err != nil {
 		c.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
 		return

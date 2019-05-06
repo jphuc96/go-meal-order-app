@@ -1,6 +1,6 @@
 ## Lunch Order REST API
 
-#### /auth/google.login
+#### /auth/google/login
 - GET: Login with oauth2
     - Request:
         ```json
@@ -18,7 +18,7 @@
 #### /auth/google/logout
 - POST: Logout 
     - Header: 
-        - email: example@gmai.com
+        - email: example@gmail.com
         - access_token: [base64_token]
     - Request:
         ```json
@@ -31,12 +31,11 @@
 
 - GET: Handle oauth2 callback
     - Header: 
+        - email : example@gmail.com
         - state: state param from login response
     - Request:
         ```json
-        {
-            "email" : "example@gmail.com"
-        }
+        {}
         ```
     - Response:
         ```json
@@ -52,7 +51,7 @@
 
 - GET: Get latest menu
     - Header: 
-        - email: example@gmai.com
+        - email: example@gmail.com
         - access_token: [base64_token]
     - Request:
         ```json

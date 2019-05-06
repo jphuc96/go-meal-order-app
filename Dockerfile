@@ -17,9 +17,14 @@ RUN go install -v ./...
 #### Runner Stage
 FROM alpine:3.9
 
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates tzdata
+
+#### Set timezone
+RUN cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
+RUN echo "Asia/Ho_Chi_Minh" /etc/timezone
 
 # Set of environments
+ENV LISTEN_HOST=${LISTEN_HOST}
 ENV PORT=${PORT}
 ENV DB_HOST=${DB_HOST}
 ENV DB_PORT=${DB_PORT}
@@ -34,6 +39,6 @@ ENV GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
 COPY --from=builder /go/bin/migrate .
 COPY --from=builder /go/bin/server .
 
-EXPOSE 8080
+EXPOSE 8000
 
 CMD ["./server"]
