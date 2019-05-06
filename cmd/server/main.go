@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	listenHost := os.Getenv("LISTEN_HOST")
 	listenPort := os.Getenv("PORT")
 	dbConf := &app.DBConfig{
 		Host:     os.Getenv("DB_HOST"),
@@ -24,11 +23,6 @@ func main() {
 		log.Fatal("missing environments")
 	}
 
-	if listenHost == "" {
-		listenHost = "0.0.0.0"
-		log.Println("default listening host is set to " + listenHost)
-	}
-
 	if listenPort == "" {
 		listenPort = "8000"
 		log.Println("default listening port is set to " + listenPort)
@@ -39,5 +33,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app.RunServer(listenHost + ":" + listenPort)
+	app.RunServer("0.0.0.0:" + listenPort)
 }

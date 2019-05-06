@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	cors "github.com/rs/cors/wrapper/gin"
 
 	"git.d.foundation/datcom/backend/src/handler"
 	"git.d.foundation/datcom/backend/src/service"
@@ -30,6 +31,7 @@ type DBConfig struct {
 }
 
 var SessionStore = sessions.NewCookieStore([]byte("secret"))
+var allowedHeaders = "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization,X-CSRF-Token, email, state, access_token"
 
 func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 
@@ -55,6 +57,14 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 	a.Handler = handler.NewCoreHandler(a.Service, db)
 
 	a.Router = gin.Default()
+
+	cors := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://192.168.40.206:8000", "http://localhost:3000"},
+		AllowedHeaders:   []string{"Origin", "email", "state", "access_token"},
+		AllowCredentials: true,
+		Debug:            true,
+	})
+	a.Router.Use(cors)
 	a.Router.Use(sessions.Sessions("default", SessionStore))
 	a.SetRouters()
 
@@ -74,16 +84,30 @@ func (a *App) SetRouters() {
 	a.Router.POST("/menus/:MenuID/users/:UserID/orders", a.CreateOrModifyOrder)
 	a.Router.DELETE("/menus/:MenuID/users/:UserID/orders", a.CancelAllOrderOfUser)
 	a.Router.GET("/menus/:MenuID/people-in-charge", a.GetPeopleInCharge)
+
+	a.Router.OPTIONS("/auth/google/login", a.preflight)
+	a.Router.OPTIONS("/auth/google/logout", a.preflight)
+	a.Router.OPTIONS("/auth/google/callback", a.preflight)
+	a.Router.OPTIONS("/menus", a.preflight)
+	a.Router.OPTIONS("/menus/:MenuID/time", a.preflight)
+	a.Router.OPTIONS("/menus/:MenuID/items", a.preflight)
+	a.Router.OPTIONS("/items/:ItemID", a.preflight)
+	a.Router.OPTIONS("/menus/:MenuID/users/:UserID/orders", a.preflight)
+	a.Router.OPTIONS("/menus/:MenuID/people-in-charge", a.preflight)
+}
+
+func (a *App) preflight(g *gin.Context) {
+	g.Header("Access-Control-Allow-Origin", "*")
+	g.Header("Access-Control-Allow-Headers", "access-control-allow-origin, access-control-allow-headers")
+	g.JSON(http.StatusOK, struct{}{})
 }
 
 func (a *App) GoogleLogin(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	a.Handler.GoogleLogin(g)
 }
 
 func (a *App) GoogleLogout(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
@@ -94,13 +118,11 @@ func (a *App) GoogleLogout(g *gin.Context) {
 }
 
 func (a *App) GoogleOauthCallback(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	a.Handler.GoogleOauthCallback(g)
 }
 
 func (a *App) GetLatestMenu(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
@@ -111,7 +133,6 @@ func (a *App) GetLatestMenu(g *gin.Context) {
 }
 
 func (a *App) CreateMenu(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
@@ -122,7 +143,6 @@ func (a *App) CreateMenu(g *gin.Context) {
 }
 
 func (a *App) ModifyMenuTime(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
@@ -133,7 +153,6 @@ func (a *App) ModifyMenuTime(g *gin.Context) {
 }
 
 func (a *App) AddItemToMenu(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
@@ -144,7 +163,6 @@ func (a *App) AddItemToMenu(g *gin.Context) {
 }
 
 func (a *App) DeleteItemFromMenu(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
@@ -155,7 +173,6 @@ func (a *App) DeleteItemFromMenu(g *gin.Context) {
 }
 
 func (a *App) GetOrdersOfUser(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
@@ -166,7 +183,6 @@ func (a *App) GetOrdersOfUser(g *gin.Context) {
 }
 
 func (a *App) CreateOrModifyOrder(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
@@ -177,7 +193,6 @@ func (a *App) CreateOrModifyOrder(g *gin.Context) {
 }
 
 func (a *App) CancelAllOrderOfUser(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
@@ -188,7 +203,6 @@ func (a *App) CancelAllOrderOfUser(g *gin.Context) {
 }
 
 func (a *App) GetPeopleInCharge(g *gin.Context) {
-	g.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	g.Writer.Header().Set("Content-Type", "application/json")
 	err := a.Service.AuthCheck(g.Request)
 	if err != nil {
