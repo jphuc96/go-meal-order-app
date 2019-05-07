@@ -14,29 +14,27 @@ const (
 	oauthGoogleUrlAPI = "https://wwg.Writer.googleapis.com/oauth2/v2/userinfo?access_token="
 )
 
-func (c *CoreHandler) GoogleLogin(g *gin.Context) {
-	State = c.service.RandToken()
-	url := OAuthConfig.AuthCodeURL(State)
-
-	g.Writer.WriteHeader(http.StatusOK)
-	json.NewEncoder(g.Writer).Encode(&domain.AuthConfig{
-		RedirectURL: url,
-		ClientID:    OAuthConfig.ClientID,
-		State:       State,
-	})
-}
-
 func (c *CoreHandler) GoogleLogout(g *gin.Context) {
+	tok := g.Request.Header.Get("access_token")
+
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
 		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
+	u, err := c.service.GetUserByToken(tx, tok)
+	if err != nil {
+		tx.Rollback()
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		return
+	}
+
 	err = c.service.UpdateUserToken(tx, &domain.UserInput{
-		Email: g.Request.Header.Get("email"),
-		Token: g.Request.Header.Get("access_token"),
+		Email: u.Email,
+		Token: u.Token,
 	}, "")
+
 	if err != nil {
 		tx.Rollback()
 		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
@@ -48,15 +46,16 @@ func (c *CoreHandler) GoogleLogout(g *gin.Context) {
 }
 
 func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
-	queryState := g.Request.Header.Get("state")
-	if State != queryState {
-		c.HandleHTTPError(domain.InvalidOAuthState, http.StatusUnauthorized, g.Writer)
+	idToken := g.Request.Header.Get("id_token")
+	if idToken == "" {
+		c.HandleHTTPError(domain.NotProvideToken, http.StatusBadRequest, g.Writer)
 		return
 	}
 
-	email := g.Request.Header.Get("email")
-	if email == "" {
-		c.HandleHTTPError(domain.NotProvideEmail, http.StatusUnauthorized, g.Writer)
+	// Call google api to verify user
+	googleUser, err := c.service.GetGoogleUserInfo(idToken)
+	if err != nil {
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
@@ -67,7 +66,7 @@ func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
 	}
 
 	// Check user in db
-	dbUser, _ := c.service.GetUserByEmail(tx, email)
+	dbUser, _ := c.service.GetUserByEmail(tx, googleUser.Email)
 	if dbUser != nil {
 		// if logged out
 		if dbUser.Token == "" {
@@ -80,17 +79,21 @@ func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
 				c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 				return
 			}
-			dbUser, _ = c.service.GetUserByEmail(tx, email)
+			dbUser, _ = c.service.GetUserByEmail(tx, googleUser.Email)
 		}
 
 		tx.Commit()
 		json.NewEncoder(g.Writer).Encode(domain.UserOutputMapping(dbUser))
 		return
 	}
-
 	// if user is new, check with Fortress before decide to create user or not
-	ftUser, err := c.service.FortressVerify(email)
+	ftUser := &domain.FTResp{}
+	_, err = c.service.FortressVerify(googleUser.Email)
 	if err != nil {
+		c.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+		return
+	}
+	if ftUser == nil {
 		c.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
 		return
 	}

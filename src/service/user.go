@@ -39,6 +39,10 @@ func (s *Service) GetUserByEmail(tx *sql.Tx, m string) (*models.User, error) {
 	})
 }
 
+func (s *Service) GetUserByToken(tx *sql.Tx, tok string) (*models.User, error) {
+	return s.Store.UserStore.GetByToken(tx, tok)
+}
+
 func (s *Service) UpdateUserToken(tx *sql.Tx, p *domain.UserInput, newToken string) error {
 	return s.Store.UserStore.UpdateToken(tx, p, newToken)
 }

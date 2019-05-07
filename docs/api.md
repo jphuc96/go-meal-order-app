@@ -1,23 +1,9 @@
 ## Lunch Order REST API
 
-#### /auth/google/login
-- GET: Login with oauth2
-    - Request:
-        ```json
-        {}
-        ```
-    - Response:
-        ```json
-        {
-            "client_id" : "string",
-        }
-        ```
-
 #### /auth/google/logout
 - POST: Logout 
     - Header: 
-        - email: example@gmail.com
-        - id_token: eefijeiffiwejfi
+        - access_token: [base64_token]
     - Request:
         ```json
         {}
@@ -29,8 +15,8 @@
 
 - GET: Handle oauth2 callback
     - Header: 
-        - client_id 
-        - id_token
+        - client_id: 
+        - id_token: 
     - Request:
         ```json
         {}
@@ -41,7 +27,7 @@
             "id" : 0,
             "name" : "string",
             "email" : "example@gmail.com",
-            "id_token" : "string",
+            "access_token" : "string",
         }
         ```
 
@@ -49,8 +35,7 @@
 
 - GET: Get latest menu
     - Header: 
-        - email: example@gmail.com
-        - id_token: [base64_token]
+        - access_token: [base64_token]
     - Request:
         ```json
         {}
@@ -89,8 +74,7 @@
 
 - POST: Create menu
     - Header: 
-        - email: example@gmail.com
-        - id_token: [base64_token]
+        - access_token: [base64_token]
     - Request:
         ```json
         {   "menu" : {
@@ -126,8 +110,7 @@
 
 - POST: Modify menu's deadline and payment time
     - Header: 
-        - email: example@gmail.com
-        - id_token: [base64_token]
+        - access_token: [base64_token]
     - Request:
         ```json
             {
@@ -147,8 +130,7 @@
 
 - POST: Add an items to menu
     - Header: 
-        - email: example@gmail.com
-        - id_token: [base64_token]
+        - access_token: [base64_token]
     - Request:
         ```json
         {
@@ -170,8 +152,7 @@
 
 - DELETE: Delete an item from menu
     - Header: 
-        - email: example@gmail.com
-        - id_token: [base64_token]
+        - access_token: [base64_token]
     - Request:
         ```json
         {}
@@ -191,8 +172,7 @@
 
 - GET: Get orders of an user
     - Header: 
-        - email: example@gmail.com
-        - id_token: [base64_token]
+        - access_token: [base64_token]
     - Request:
         ```json
         {}
@@ -211,8 +191,7 @@
         ```
 - POST: Create/Modify orders
     - Header: 
-        - email: example@gmail.com
-        - id_token: [base64_token]
+        - access_token: [base64_token]
     - Request:
         ```json
         {
@@ -232,8 +211,7 @@
         ```
 - DELETE: Cancel all orders of user
     - Header: 
-        - email: example@gmail.com
-        - id_token: [base64_token]
+        - access_token: [base64_token]
     - Request:
         ```json
         {}
@@ -254,8 +232,7 @@
 
 - GET: Get people in charge of the menu
     - Header: 
-        - email: example@gmail.com
-        - id_token: [base64_token]
+        - access_token: [base64_token]
     - Request:
         ```json
         {}

@@ -14,5 +14,6 @@ type Service interface {
 	FindAll() ([]*models.User, error)
 	UpdateToken(tx *sql.Tx, p *domain.UserInput, newToken string) error
 	GetByID(tx *sql.Tx, userID int) (*models.User, error)
-	ExistByEmailAndToken(email, token string) (bool, error)
+	ExistByToken(token string) (bool, error)
+	GetByToken(tx *sql.Tx, tok string) (*models.User, error)
 }

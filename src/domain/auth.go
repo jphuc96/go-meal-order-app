@@ -15,7 +15,7 @@ type FTResp struct {
 }
 
 type VerifyResp struct {
-	AuthInfo CreateaUserOutput `json:"auth_info,omitempty"`
+	AuthInfo UserOutput `json:"auth_info,omitempty"`
 }
 type AuthResp struct {
 	Token      string     `json:"token"`
@@ -23,19 +23,12 @@ type AuthResp struct {
 }
 
 type GoogleUser struct {
-	Iss string `json:"iss,omitempty"`
-	Sub string `json:"sub,omitempty"`
-	Azp string `json:"azp,omitempty"`
-	Aud string `json:"aud,omitempty"`
-	Iat string `json:"iat,omitempty"`
-	Exp string `json:"exp,omitempty"`
-
 	Name          string `json:"name,omitempty"`
 	GivenName     string `json:"given_name,omitempty"`
 	FamilyName    string `json:"family_name,omitempty"`
 	Profile       string `json:"profile,omitempty"`
 	Picture       string `json:"picture,omitempty"`
 	Email         string `json:"email,omitempty"`
-	EmailVerified bool   `json:"email_verified,omitempty"`
+	EmailVerified string `json:"email_verified,omitempty"`
 	Locale        string `json:"locale,omitempty"`
 }
