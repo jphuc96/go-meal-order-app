@@ -23,7 +23,13 @@ type AuthResp struct {
 }
 
 type GoogleUser struct {
-	Sub           string `json:"sub,omitempty"`
+	Iss string `json:"iss,omitempty"`
+	Sub string `json:"sub,omitempty"`
+	Azp string `json:"azp,omitempty"`
+	Aud string `json:"aud,omitempty"`
+	Iat string `json:"iat,omitempty"`
+	Exp string `json:"exp,omitempty"`
+
 	Name          string `json:"name,omitempty"`
 	GivenName     string `json:"given_name,omitempty"`
 	FamilyName    string `json:"family_name,omitempty"`
@@ -31,6 +37,5 @@ type GoogleUser struct {
 	Picture       string `json:"picture,omitempty"`
 	Email         string `json:"email,omitempty"`
 	EmailVerified bool   `json:"email_verified,omitempty"`
-	Gender        string `json:"gender,omitempty"`
 	Locale        string `json:"locale,omitempty"`
 }

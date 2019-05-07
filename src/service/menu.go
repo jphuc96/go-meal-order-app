@@ -47,3 +47,16 @@ func (s *Service) UpdateMenu(tx *sql.Tx, updateMenu *models.Menu) (*models.Menu,
 	}
 	return s.Store.MenuStore.FindByID(tx, updateMenu.ID)
 }
+
+func (s *Service) HandleMenuDeadline(tx *sql.Tx, menu *models.Menu) error {
+	dl := menu.Deadline.Truncate(time.Minute)
+	now := time.Now().Truncate(time.Minute)
+	menu.Status = domain.MenuOpen
+	if now.After(dl) {
+		menu.Status = domain.MenuClose
+	}
+	domain.MenuStatus = menu.Status
+
+	_, err := s.UpdateMenu(tx, menu)
+	return err
+}

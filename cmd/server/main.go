@@ -24,7 +24,7 @@ func main() {
 	}
 
 	if listenPort == "" {
-		listenPort = "8000"
+		listenPort = "80"
 		log.Println("default listening port is set to " + listenPort)
 	}
 

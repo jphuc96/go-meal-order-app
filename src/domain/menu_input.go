@@ -2,6 +2,13 @@ package domain
 
 import "time"
 
+const (
+	MenuOpen  = 1
+	MenuClose = 0
+)
+
+var MenuStatus = MenuOpen
+
 // MenuInput ..
 type MenuInput struct {
 	OwnerID         int       `json:"owner_id"`

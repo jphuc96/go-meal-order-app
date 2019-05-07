@@ -34,6 +34,11 @@ func (c *CoreHandler) GetOrdersOfUser(g *gin.Context) {
 }
 
 func (c *CoreHandler) CreateOrModifyOrder(g *gin.Context) {
+	if domain.MenuStatus == domain.MenuClose {
+		c.HandleHTTPError(domain.MenuClosed, http.StatusForbidden, g.Writer)
+		return
+	}
+
 	menuID := g.Param("MenuID")
 	userID := g.Param("UserID")
 
@@ -108,6 +113,11 @@ func (c *CoreHandler) CreateOrModifyOrder(g *gin.Context) {
 }
 
 func (c *CoreHandler) CancelAllOrderOfUser(g *gin.Context) {
+	if domain.MenuStatus == domain.MenuClose {
+		c.HandleHTTPError(domain.MenuClosed, http.StatusForbidden, g.Writer)
+		return
+	}
+
 	menuID := g.Param("MenuID")
 	userID := g.Param("UserID")
 

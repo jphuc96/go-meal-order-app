@@ -13,7 +13,6 @@ import (
 )
 
 func (c *CoreHandler) GetLatestMenu(g *gin.Context) {
-
 	menuResp := &domain.MenuResp{}
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
@@ -31,6 +30,14 @@ func (c *CoreHandler) GetLatestMenu(g *gin.Context) {
 	}
 	// if no menu today
 	if latestMenu == nil {
+		return
+	}
+
+	// check deadline and update status
+	err = c.service.HandleMenuDeadline(tx, latestMenu)
+	if err != nil {
+		tx.Rollback()
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
@@ -181,6 +188,13 @@ func (c *CoreHandler) ModifyMenuTime(g *gin.Context) {
 	}
 
 	newMenu, err := c.service.UpdateMenu(tx, m)
+	if err != nil {
+		tx.Rollback()
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		return
+	}
+
+	err = c.service.HandleMenuDeadline(tx, newMenu)
 	if err != nil {
 		tx.Rollback()
 		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
