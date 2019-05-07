@@ -57,5 +57,3 @@ config.env
 docker.env
 docker-heroku.env
 gcp-heroku.env
-cert.pem
-privkey.pem

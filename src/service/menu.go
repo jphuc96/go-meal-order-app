@@ -27,9 +27,8 @@ func (s *Service) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
 	if err != nil {
 		return nil, err
 	}
-	loc, _ := time.LoadLocation("Asia/Ho_Chi_Minh")
-	createAt := m.CreatedAt.In(loc).Truncate(24 * time.Hour)
-	now := time.Now().In(loc).Truncate(24 * time.Hour)
+	createAt := m.CreatedAt.Truncate(24 * time.Hour)
+	now := time.Now().Truncate(24 * time.Hour)
 
 	if !now.Equal(createAt) {
 		return nil, nil
