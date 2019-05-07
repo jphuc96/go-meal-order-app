@@ -27,7 +27,6 @@ RUN cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
 RUN echo "Asia/Ho_Chi_Minh" /etc/timezone
 
 # Set of environments
-ENV LISTEN_HOST=${LISTEN_HOST}
 ENV PORT=${PORT}
 ENV DB_HOST=${DB_HOST}
 ENV DB_PORT=${DB_PORT}
@@ -35,8 +34,6 @@ ENV DB_NAME=${DB_NAME}
 ENV DB_USER=${DB_USER}
 ENV DB_PASSWORD=${DB_PASSWORD}
 ENV DB_SSL=${DB_SSL}
-ENV GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
-ENV GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
 
 COPY --from=builder /go/bin/migrate .
 COPY --from=builder /go/bin/server .

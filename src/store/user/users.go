@@ -67,6 +67,11 @@ func (us *userService) GetByID(tx *sql.Tx, userID int) (*models.User, error) {
 	return models.FindUser(context.Background(), tx, userID)
 }
 
-func (us *userService) ExistByEmailAndToken(email, token string) (bool, error) {
-	return models.Users(qm.Where("email=? AND token=?", email, token)).Exists(context.Background(), us.db)
+func (us *userService) ExistByToken(token string) (bool, error) {
+	return models.Users(qm.Where("token=?", token)).Exists(context.Background(), us.db)
+}
+
+func (us *userService) GetByToken(tx *sql.Tx, tok string) (*models.User, error) {
+	user, err := models.Users(qm.Where("token=?", tok)).One(context.Background(), tx)
+	return user, err
 }

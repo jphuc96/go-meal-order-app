@@ -60,7 +60,7 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"https://datcom.netlify.com", "http://datcom.netlify.com", "http://localhost:3000"},
-		AllowedHeaders:   []string{"Origin", "email", "state", "access_token"},
+		AllowedHeaders:   []string{"Origin", "client_id", "id_token", "access_token"},
 		AllowCredentials: true,
 		Debug:            true,
 	})
@@ -72,7 +72,6 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 }
 
 func (a *App) SetRouters() {
-	a.Router.GET("/auth/google/login", a.GoogleLogin)
 	a.Router.POST("/auth/google/logout", a.GoogleLogout)
 	a.Router.GET("/auth/google/callback", a.GoogleOauthCallback)
 	a.Router.GET("/menus", a.GetLatestMenu)
@@ -85,7 +84,6 @@ func (a *App) SetRouters() {
 	a.Router.DELETE("/menus/:MenuID/users/:UserID/orders", a.CancelAllOrderOfUser)
 	a.Router.GET("/menus/:MenuID/people-in-charge", a.GetPeopleInCharge)
 
-	a.Router.OPTIONS("/auth/google/login", a.preflight)
 	a.Router.OPTIONS("/auth/google/logout", a.preflight)
 	a.Router.OPTIONS("/auth/google/callback", a.preflight)
 	a.Router.OPTIONS("/menus", a.preflight)
@@ -100,11 +98,6 @@ func (a *App) preflight(g *gin.Context) {
 	g.Header("Access-Control-Allow-Origin", "*")
 	g.Header("Access-Control-Allow-Headers", "access-control-allow-origin, access-control-allow-headers")
 	g.JSON(http.StatusOK, struct{}{})
-}
-
-func (a *App) GoogleLogin(g *gin.Context) {
-	g.Writer.Header().Set("Content-Type", "application/json")
-	a.Handler.GoogleLogin(g)
 }
 
 func (a *App) GoogleLogout(g *gin.Context) {
