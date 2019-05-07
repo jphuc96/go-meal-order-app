@@ -17,6 +17,9 @@ RUN go install -v ./...
 #### Runner Stage
 FROM alpine:3.9
 
+COPY cert.pem .
+COPY privkey.pem .
+
 RUN apk --no-cache add ca-certificates tzdata
 
 #### Set timezone
@@ -32,13 +35,13 @@ ENV DB_NAME=${DB_NAME}
 ENV DB_USER=${DB_USER}
 ENV DB_PASSWORD=${DB_PASSWORD}
 ENV DB_SSL=${DB_SSL}
-ENV GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}
 ENV GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
 ENV GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
 
 COPY --from=builder /go/bin/migrate .
 COPY --from=builder /go/bin/server .
 
-EXPOSE 8000
+EXPOSE 80
+EXPOSE 443
 
 CMD ["./server"]

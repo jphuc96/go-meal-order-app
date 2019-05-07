@@ -25,6 +25,7 @@ var (
 	VerifyUserFailed  = errors.New("verifying user failed, try again")
 	NotProvideEmail   = errors.New("email was not provided")
 	NotProvideToken   = errors.New("token was not provided")
+	MenuClosed        = errors.New("menu was closed")
 )
 
 type ErrorResponse struct {

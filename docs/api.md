@@ -9,9 +9,7 @@
     - Response:
         ```json
         {
-            "redirect_url" : "url",
             "client_id" : "string",
-            "state" : "string"
         }
         ```
 
@@ -19,7 +17,7 @@
 - POST: Logout 
     - Header: 
         - email: example@gmail.com
-        - access_token: [base64_token]
+        - id_token: eefijeiffiwejfi
     - Request:
         ```json
         {}
@@ -31,8 +29,8 @@
 
 - GET: Handle oauth2 callback
     - Header: 
-        - email : example@gmail.com
-        - state: state param from login response
+        - client_id 
+        - id_token
     - Request:
         ```json
         {}
@@ -43,7 +41,7 @@
             "id" : 0,
             "name" : "string",
             "email" : "example@gmail.com",
-            "token" : "string",
+            "id_token" : "string",
         }
         ```
 
@@ -52,7 +50,7 @@
 - GET: Get latest menu
     - Header: 
         - email: example@gmail.com
-        - access_token: [base64_token]
+        - id_token: [base64_token]
     - Request:
         ```json
         {}
@@ -91,8 +89,8 @@
 
 - POST: Create menu
     - Header: 
-        - email: example@gmai.com
-        - access_token: [base64_token]
+        - email: example@gmail.com
+        - id_token: [base64_token]
     - Request:
         ```json
         {   "menu" : {
@@ -128,8 +126,8 @@
 
 - POST: Modify menu's deadline and payment time
     - Header: 
-        - email: example@gmai.com
-        - access_token: [base64_token]
+        - email: example@gmail.com
+        - id_token: [base64_token]
     - Request:
         ```json
             {
@@ -149,8 +147,8 @@
 
 - POST: Add an items to menu
     - Header: 
-        - email: example@gmai.com
-        - access_token: [base64_token]
+        - email: example@gmail.com
+        - id_token: [base64_token]
     - Request:
         ```json
         {
@@ -172,8 +170,8 @@
 
 - DELETE: Delete an item from menu
     - Header: 
-        - email: example@gmai.com
-        - access_token: [base64_token]
+        - email: example@gmail.com
+        - id_token: [base64_token]
     - Request:
         ```json
         {}
@@ -193,8 +191,8 @@
 
 - GET: Get orders of an user
     - Header: 
-        - email: example@gmai.com
-        - access_token: [base64_token]
+        - email: example@gmail.com
+        - id_token: [base64_token]
     - Request:
         ```json
         {}
@@ -213,8 +211,8 @@
         ```
 - POST: Create/Modify orders
     - Header: 
-        - email: example@gmai.com
-        - access_token: [base64_token]
+        - email: example@gmail.com
+        - id_token: [base64_token]
     - Request:
         ```json
         {
@@ -234,8 +232,8 @@
         ```
 - DELETE: Cancel all orders of user
     - Header: 
-        - email: example@gmai.com
-        - access_token: [base64_token]
+        - email: example@gmail.com
+        - id_token: [base64_token]
     - Request:
         ```json
         {}
@@ -256,8 +254,8 @@
 
 - GET: Get people in charge of the menu
     - Header: 
-        - email: example@gmai.com
-        - access_token: [base64_token]
+        - email: example@gmail.com
+        - id_token: [base64_token]
     - Request:
         ```json
         {}
@@ -283,3 +281,7 @@
     }
 }
 ```
+
+### After deadline, below APIs will be disable:
+ - POST /menus/{MenuID}/users/{UserID}/orders
+ - DELETE /menus/{MenuID}/users/{UserID}/orders

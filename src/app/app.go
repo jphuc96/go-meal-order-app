@@ -59,7 +59,7 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 	a.Router = gin.Default()
 
 	cors := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://192.168.40.206:8000", "http://localhost:3000"},
+		AllowedOrigins:   []string{"https://datcom.netlify.com", "http://datcom.netlify.com", "http://localhost:3000"},
 		AllowedHeaders:   []string{"Origin", "email", "state", "access_token"},
 		AllowCredentials: true,
 		Debug:            true,
@@ -214,5 +214,6 @@ func (a *App) GetPeopleInCharge(g *gin.Context) {
 
 func (a *App) RunServer(host string) {
 	log.Println("server is running at " + host)
-	log.Fatal(a.Router.Run(host))
+	log.Fatal(a.Router.RunTLS(host, "cert.pem", "privkey.pem"))
+	// log.Fatal(a.Router.Run(host))
 }
