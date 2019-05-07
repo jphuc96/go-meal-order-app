@@ -15,10 +15,13 @@ RUN go get -d -v ./...
 RUN go install -v ./...
 
 #### Runner Stage
-FROM alpine:3.9
+FROM nginx:alpine
 
-COPY cert.pem .
-COPY privkey.pem .
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY cert.pem /etc/ssl/cert.pem
+COPY privkey.pem /etc/ssl/privkey.pem
+
+WORKDIR /datcom
 
 RUN apk --no-cache add ca-certificates tzdata
 
@@ -27,7 +30,6 @@ RUN cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
 RUN echo "Asia/Ho_Chi_Minh" /etc/timezone
 
 # Set of environments
-ENV PORT=${PORT}
 ENV DB_HOST=${DB_HOST}
 ENV DB_PORT=${DB_PORT}
 ENV DB_NAME=${DB_NAME}
@@ -41,4 +43,7 @@ COPY --from=builder /go/bin/server .
 EXPOSE 80
 EXPOSE 443
 
-CMD ["./server"]
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+CMD ["/datcom/server"]
+ENTRYPOINT [ "/docker-entrypoint.sh" ]

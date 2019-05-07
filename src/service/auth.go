@@ -48,9 +48,9 @@ func (s *Service) RandToken() string {
 }
 
 func (s *Service) AuthCheck(r *http.Request) error {
-	accessToken := r.Header.Get("access_token")
+	accessToken := r.Header.Get("authorization")
 	if accessToken == "" {
-		return domain.NotProvideToken
+		return domain.NotProvideAccessToken
 	}
 
 	exist, _ := s.Store.UserStore.ExistByToken(accessToken)

@@ -41,17 +41,6 @@ func TestService_AddPIC(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "when AddPIC() failed",
-			fields: fields{
-				pic.ServiceMock{
-					ExistFunc: func(tx *sql.Tx, o *domain.PICInput) (bool, error) {
-						return true, nil
-					},
-				},
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

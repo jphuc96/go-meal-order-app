@@ -187,29 +187,6 @@ func TestService_CreateUser(t *testing.T) {
 			want:    nil,
 			wantErr: true,
 		},
-		{
-			name: "Invalid email format",
-			fields: fields{
-				user.ServiceMock{
-					CreateFunc: func(tx *sql.Tx, p *domain.UserInput) (*models.User, error) {
-						return &models.User{}, nil
-					},
-					ExistFunc: func(p *domain.UserInput) (bool, error) {
-						return false, nil
-					},
-				},
-			},
-			args: args{
-				&sql.Tx{},
-				&domain.UserInput{
-					Name:  "Demo4",
-					Email: "Demo2invalidemail",
-					Token: "ABCD",
-				},
-			},
-			want:    &models.User{},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

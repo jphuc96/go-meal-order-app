@@ -6,9 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
-	cors "github.com/rs/cors/wrapper/gin"
 
 	"git.d.foundation/datcom/backend/src/handler"
 	"git.d.foundation/datcom/backend/src/service"
@@ -29,9 +27,6 @@ type DBConfig struct {
 	DBName   string
 	SSLMode  string
 }
-
-var SessionStore = sessions.NewCookieStore([]byte("secret"))
-var allowedHeaders = "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization,X-CSRF-Token, email, state, access_token"
 
 func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 
@@ -57,15 +52,6 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 	a.Handler = handler.NewCoreHandler(a.Service, db)
 
 	a.Router = gin.Default()
-
-	cors := cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://datcom.netlify.com", "http://datcom.netlify.com", "http://localhost:3000"},
-		AllowedHeaders:   []string{"Origin", "client_id", "id_token", "access_token"},
-		AllowCredentials: true,
-		Debug:            true,
-	})
-	a.Router.Use(cors)
-	a.Router.Use(sessions.Sessions("default", SessionStore))
 	a.SetRouters()
 
 	return a, nil
@@ -83,21 +69,6 @@ func (a *App) SetRouters() {
 	a.Router.POST("/menus/:MenuID/users/:UserID/orders", a.CreateOrModifyOrder)
 	a.Router.DELETE("/menus/:MenuID/users/:UserID/orders", a.CancelAllOrderOfUser)
 	a.Router.GET("/menus/:MenuID/people-in-charge", a.GetPeopleInCharge)
-
-	a.Router.OPTIONS("/auth/google/logout", a.preflight)
-	a.Router.OPTIONS("/auth/google/callback", a.preflight)
-	a.Router.OPTIONS("/menus", a.preflight)
-	a.Router.OPTIONS("/menus/:MenuID/time", a.preflight)
-	a.Router.OPTIONS("/menus/:MenuID/items", a.preflight)
-	a.Router.OPTIONS("/items/:ItemID", a.preflight)
-	a.Router.OPTIONS("/menus/:MenuID/users/:UserID/orders", a.preflight)
-	a.Router.OPTIONS("/menus/:MenuID/people-in-charge", a.preflight)
-}
-
-func (a *App) preflight(g *gin.Context) {
-	g.Header("Access-Control-Allow-Origin", "*")
-	g.Header("Access-Control-Allow-Headers", "access-control-allow-origin, access-control-allow-headers")
-	g.JSON(http.StatusOK, struct{}{})
 }
 
 func (a *App) GoogleLogout(g *gin.Context) {
@@ -206,7 +177,5 @@ func (a *App) GetPeopleInCharge(g *gin.Context) {
 }
 
 func (a *App) RunServer(host string) {
-	log.Println("server is running at " + host)
-	log.Fatal(a.Router.RunTLS(host, "cert.pem", "privkey.pem"))
-	// log.Fatal(a.Router.Run(host))
+	log.Fatal(a.Router.Run(host))
 }

@@ -1,8 +1,8 @@
 image: golang:1.12
 
 stages:
-  - build
   - test
+  - build
   - cloud-builds
   - deploy-to-vm
   
@@ -22,28 +22,30 @@ build:
   stage: build
   script:
     - make build
+  except:
+    - tags
 
 cloud-builds:
   stage: cloud-builds
   only:
     - tags
-  except:
-    - master
   image: google/cloud-sdk:alpine
   script:
+    - echo $LETSENCRYPT_CERT > $CI_PROJECT_DIR/cert.pem
+    - echo $LETSENCRYPT_KEY > $CI_PROJECT_DIR/privkey.pem
     - echo $SERVICE_ACCOUNT > /tmp/$CI_PIPELINE_ID.json
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $PROJECT_ID
-    - gcloud builds submit --tag gcr.io/$PROJECT_ID/datcom_backend .
+    - gcloud builds submit --tag gcr.io/$PROJECT_ID/datcom_backend $CI_PROJECT_DIR
   after_script:
     - rm /tmp/$CI_PIPELINE_ID.json
+    - rm $CI_PROJECT_DIR/cert.pem
+    - rm $CI_PROJECT_DIR/privkey.pem
 
 deploy-to-vm:
   stage: deploy-to-vm
   only:
     - tags
-  except:
-    - master
   image: google/cloud-sdk:alpine
   script:
     - echo $SERVICE_ACCOUNT > /tmp/$CI_PIPELINE_ID.json
@@ -53,7 +55,7 @@ deploy-to-vm:
     - gcloud compute instances update-container datcombackend 
       --container-image gcr.io/$PROJECT_ID/datcom_backend:latest 
       --container-restart-policy always 
-      --container-env PORT=$PORT,DB_HOST=$DB_HOST,DB_PORT=$DB_PORT,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_PASSWORD=$DB_PASSWORD,DB_SSL=$DB_SSL,GOOGLE_REDIRECT_URL=$GOOGLE_REDIRECT_URL,GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID,GOOGLE_OAUTH_CLIENT_SECRET=$GOOGLE_OAUTH_CLIENT_SECRET
+      --container-env PORT=$PORT,DB_HOST=$DB_HOST,DB_PORT=$DB_PORT,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_PASSWORD=$DB_PASSWORD,DB_SSL=$DB_SSL
     - gcloud compute instances start datcombackend
   after_script:
     - rm /tmp/$CI_PIPELINE_ID.json

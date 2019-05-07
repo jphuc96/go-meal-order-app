@@ -11,9 +11,10 @@ import (
 )
 
 var (
-	lockServiceMockAdd         sync.RWMutex
-	lockServiceMockExist       sync.RWMutex
-	lockServiceMockGetByMenuID sync.RWMutex
+	lockServiceMockAdd          sync.RWMutex
+	lockServiceMockDeleteAllPIC sync.RWMutex
+	lockServiceMockExist        sync.RWMutex
+	lockServiceMockGetByMenuID  sync.RWMutex
 )
 
 // Ensure, that ServiceMock does implement Service.
@@ -28,6 +29,9 @@ var _ Service = &ServiceMock{}
 //         mockedService := &ServiceMock{
 //             AddFunc: func(tx *sql.Tx, p *domain.PICInput) (*models.PeopleInCharge, error) {
 // 	               panic("mock out the Add method")
+//             },
+//             DeleteAllPICFunc: func(tx *sql.Tx, menuID int) error {
+// 	               panic("mock out the DeleteAllPIC method")
 //             },
 //             ExistFunc: func(tx *sql.Tx, p *domain.PICInput) (bool, error) {
 // 	               panic("mock out the Exist method")
@@ -45,6 +49,9 @@ type ServiceMock struct {
 	// AddFunc mocks the Add method.
 	AddFunc func(tx *sql.Tx, p *domain.PICInput) (*models.PeopleInCharge, error)
 
+	// DeleteAllPICFunc mocks the DeleteAllPIC method.
+	DeleteAllPICFunc func(tx *sql.Tx, menuID int) error
+
 	// ExistFunc mocks the Exist method.
 	ExistFunc func(tx *sql.Tx, p *domain.PICInput) (bool, error)
 
@@ -59,6 +66,13 @@ type ServiceMock struct {
 			Tx *sql.Tx
 			// P is the p argument value.
 			P *domain.PICInput
+		}
+		// DeleteAllPIC holds details about calls to the DeleteAllPIC method.
+		DeleteAllPIC []struct {
+			// Tx is the tx argument value.
+			Tx *sql.Tx
+			// MenuID is the menuID argument value.
+			MenuID int
 		}
 		// Exist holds details about calls to the Exist method.
 		Exist []struct {
@@ -109,6 +123,41 @@ func (mock *ServiceMock) AddCalls() []struct {
 	lockServiceMockAdd.RLock()
 	calls = mock.calls.Add
 	lockServiceMockAdd.RUnlock()
+	return calls
+}
+
+// DeleteAllPIC calls DeleteAllPICFunc.
+func (mock *ServiceMock) DeleteAllPIC(tx *sql.Tx, menuID int) error {
+	if mock.DeleteAllPICFunc == nil {
+		panic("ServiceMock.DeleteAllPICFunc: method is nil but Service.DeleteAllPIC was just called")
+	}
+	callInfo := struct {
+		Tx     *sql.Tx
+		MenuID int
+	}{
+		Tx:     tx,
+		MenuID: menuID,
+	}
+	lockServiceMockDeleteAllPIC.Lock()
+	mock.calls.DeleteAllPIC = append(mock.calls.DeleteAllPIC, callInfo)
+	lockServiceMockDeleteAllPIC.Unlock()
+	return mock.DeleteAllPICFunc(tx, menuID)
+}
+
+// DeleteAllPICCalls gets all the calls that were made to DeleteAllPIC.
+// Check the length with:
+//     len(mockedService.DeleteAllPICCalls())
+func (mock *ServiceMock) DeleteAllPICCalls() []struct {
+	Tx     *sql.Tx
+	MenuID int
+} {
+	var calls []struct {
+		Tx     *sql.Tx
+		MenuID int
+	}
+	lockServiceMockDeleteAllPIC.RLock()
+	calls = mock.calls.DeleteAllPIC
+	lockServiceMockDeleteAllPIC.RUnlock()
 	return calls
 }
 

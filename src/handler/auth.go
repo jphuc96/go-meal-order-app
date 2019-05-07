@@ -10,12 +10,8 @@ import (
 	"git.d.foundation/datcom/backend/src/domain"
 )
 
-const (
-	oauthGoogleUrlAPI = "https://wwg.Writer.googleapis.com/oauth2/v2/userinfo?access_token="
-)
-
 func (c *CoreHandler) GoogleLogout(g *gin.Context) {
-	tok := g.Request.Header.Get("access_token")
+	tok := g.Request.Header.Get("authorization")
 
 	tx, err := c.db.BeginTx(context.Background(), nil)
 	if err != nil {
@@ -46,7 +42,7 @@ func (c *CoreHandler) GoogleLogout(g *gin.Context) {
 }
 
 func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
-	idToken := g.Request.Header.Get("id_token")
+	idToken, _ := g.GetQuery("id_token")
 	if idToken == "" {
 		c.HandleHTTPError(domain.NotProvideToken, http.StatusBadRequest, g.Writer)
 		return
@@ -88,12 +84,8 @@ func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
 	}
 	// if user is new, check with Fortress before decide to create user or not
 	ftUser := &domain.FTResp{}
-	_, err = c.service.FortressVerify(googleUser.Email)
+	ftUser, err = c.service.FortressVerify(googleUser.Email)
 	if err != nil {
-		c.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
-		return
-	}
-	if ftUser == nil {
 		c.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
 		return
 	}
