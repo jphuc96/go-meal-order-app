@@ -3,7 +3,7 @@
 #### /auth/google/logout
 - POST: Logout 
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
         {}
@@ -14,9 +14,8 @@
 #### /auth/google/callback
 
 - GET: Handle oauth2 callback
-    - Header: 
-        - client_id: 
-        - id_token: 
+    - Query:
+        - id_token
     - Request:
         ```json
         {}
@@ -27,7 +26,7 @@
             "id" : 0,
             "name" : "string",
             "email" : "example@gmail.com",
-            "access_token" : "string",
+            "authorization" : "string",
         }
         ```
 
@@ -35,7 +34,7 @@
 
 - GET: Get latest menu
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
         {}
@@ -74,7 +73,7 @@
 
 - POST: Create menu
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
         {   "menu" : {
@@ -110,7 +109,7 @@
 
 - POST: Modify menu's deadline and payment time
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
             {
@@ -130,7 +129,7 @@
 
 - POST: Add an items to menu
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
         {
@@ -152,7 +151,7 @@
 
 - DELETE: Delete an item from menu
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
         {}
@@ -172,7 +171,7 @@
 
 - GET: Get orders of an user
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
         {}
@@ -191,7 +190,7 @@
         ```
 - POST: Create/Modify orders
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
         {
@@ -211,7 +210,7 @@
         ```
 - DELETE: Cancel all orders of user
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
         {}
@@ -232,7 +231,7 @@
 
 - GET: Get people in charge of the menu
     - Header: 
-        - access_token: [base64_token]
+        - authorization: [base64_token]
     - Request:
         ```json
         {}

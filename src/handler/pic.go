@@ -24,14 +24,20 @@ func (c *CoreHandler) GetPeopleInCharge(g *gin.Context) {
 		return
 	}
 
-	users, err := c.service.GetAllOrderUserOfMenu(tx, menuID)
+	picUsers, err := c.service.GeneratePIC(tx, menuID)
 	if err != nil {
 		tx.Rollback()
 		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
 		return
 	}
 
-	picUsers, err := c.service.GenerateRandomPIC(users)
+	err = c.service.DeleteAllPIC(tx, menuID)
+	if err != nil {
+		tx.Rollback()
+		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
+		return
+	}
+
 	for _, picUser := range picUsers {
 		_, err := c.service.AddPIC(tx, &domain.PICInput{
 			MenuID: menuID,

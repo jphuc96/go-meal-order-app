@@ -14,7 +14,7 @@ type UserOutput struct {
 	ID          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Email       string `json:"email,omitempty"`
-	Token       string `json:"access_token,omitempty"`
+	Token       string `json:"authorization,omitempty"`
 	DeviceToken string `json:"device_token,omitempty"`
 	DeviceType  string `json:"device_type,omitempty"`
 }

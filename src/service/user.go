@@ -14,9 +14,9 @@ var (
 
 func (s *Service) CreateUser(tx *sql.Tx, p *domain.UserInput) (*models.User, error) {
 
-	if !(re.MatchString(p.Email)) {
-		return nil, domain.InvalidEmail
-	}
+	// if !(re.MatchString(p.Email)) {
+	// 	return nil, domain.InvalidEmail
+	// }
 
 	exist, err := s.Store.UserStore.Exist(p)
 	if err != nil {

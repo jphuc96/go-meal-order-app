@@ -61,3 +61,19 @@ func (pics *picService) Exist(tx *sql.Tx, p *domain.PICInput) (bool, error) {
 
 	return b, nil
 }
+
+func (pics *picService) DeleteAllPIC(tx *sql.Tx, menuID int) error {
+	pp, err := pics.GetByMenuID(tx, menuID)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range pp {
+		_, err := p.Delete(context.Background(), tx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

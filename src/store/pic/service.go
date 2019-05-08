@@ -11,4 +11,5 @@ type Service interface {
 	Add(tx *sql.Tx, p *domain.PICInput) (*models.PeopleInCharge, error)
 	GetByMenuID(tx *sql.Tx, menuID int) ([]*models.PeopleInCharge, error)
 	Exist(tx *sql.Tx, p *domain.PICInput) (bool, error)
+	DeleteAllPIC(tx *sql.Tx, menuID int) error
 }
