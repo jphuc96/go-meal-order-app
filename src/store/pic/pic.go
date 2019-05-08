@@ -36,10 +36,7 @@ func (pics *picService) Add(tx *sql.Tx, p *domain.PICInput) (*models.PeopleInCha
 }
 
 func (pics *picService) GetByMenuID(tx *sql.Tx, menuID int) ([]*models.PeopleInCharge, error) {
-	people, err := models.PeopleInCharges(qm.Where("menu_id=?", menuID)).All(context.Background(), tx)
-	if err != nil {
-		return nil, err
-	}
+	people, _ := models.PeopleInCharges(qm.Where("menu_id=?", menuID)).All(context.Background(), tx)
 
 	returnPeople := make([]*models.PeopleInCharge, len(people))
 
@@ -63,10 +60,7 @@ func (pics *picService) Exist(tx *sql.Tx, p *domain.PICInput) (bool, error) {
 }
 
 func (pics *picService) DeleteAllPIC(tx *sql.Tx, menuID int) error {
-	pp, err := pics.GetByMenuID(tx, menuID)
-	if err != nil {
-		return err
-	}
+	pp, _ := pics.GetByMenuID(tx, menuID)
 
 	for _, p := range pp {
 		_, err := p.Delete(context.Background(), tx)

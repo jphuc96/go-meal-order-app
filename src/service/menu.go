@@ -23,9 +23,9 @@ func (s *Service) CreateMenu(tx *sql.Tx, p *domain.MenuInput) (*models.Menu, err
 }
 
 func (s *Service) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
-	m, err := s.Store.MenuStore.GetLatestMenu(tx)
-	if err != nil {
-		return nil, err
+	m, _ := s.Store.MenuStore.GetLatestMenu(tx)
+	if m == nil {
+		return nil, nil
 	}
 	loc, err := time.LoadLocation("Asia/Ho_Chi_Minh")
 	if err != nil {
@@ -41,7 +41,8 @@ func (s *Service) GetLatestMenu(tx *sql.Tx) (*models.Menu, error) {
 }
 
 func (s *Service) GetMenuByID(tx *sql.Tx, menuID int) (*models.Menu, error) {
-	return s.Store.MenuStore.FindByID(tx, menuID)
+	m, _ := s.Store.MenuStore.FindByID(tx, menuID)
+	return m, nil
 }
 
 func (s *Service) UpdateMenu(tx *sql.Tx, updateMenu *models.Menu) (*models.Menu, error) {

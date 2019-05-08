@@ -9,6 +9,7 @@ import (
 	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 	"git.d.foundation/datcom/backend/src/store/order"
+	"git.d.foundation/datcom/backend/src/store/user"
 )
 
 func TestService_AddOrder(t *testing.T) {
@@ -156,11 +157,11 @@ func TestService_GetOrdersByMenuAndUser(t *testing.T) {
 			fields: fields{
 				order.ServiceMock{
 					GetFunc: func(menuID string, userID string) ([]*domain.Item, error) {
-						return nil, errors.New("failed")
+						return nil, nil
 					},
 				},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -177,6 +178,86 @@ func TestService_GetOrdersByMenuAndUser(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Service.GetOrdersByMenuAndUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_GetOrderUsersByItem(t *testing.T) {
+	type fields struct {
+		Order order.ServiceMock
+		User  user.ServiceMock
+	}
+	type args struct {
+		tx     *sql.Tx
+		itemID int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []*models.User
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "Pass",
+			fields: fields{
+				order.ServiceMock{
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
+						m := []*models.Order{
+							&models.Order{},
+						}
+						return m, nil
+					},
+				},
+				user.ServiceMock{
+					GetByIDFunc: func(tx *sql.Tx, userID int) (*models.User, error) {
+						return &models.User{}, nil
+					},
+				},
+			},
+			want: []*models.User{
+				&models.User{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Fail",
+			fields: fields{
+				order.ServiceMock{
+					GetAllOrdersByItemIDFunc: func(tx *sql.Tx, ItemID int) ([]*models.Order, error) {
+						m := []*models.Order{
+							&models.Order{},
+						}
+						return m, nil
+					},
+				},
+				user.ServiceMock{
+					GetByIDFunc: func(tx *sql.Tx, userID int) (*models.User, error) {
+						return &models.User{}, errors.New("error")
+					},
+				},
+			},
+
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: Store{
+					OrderStore: &tt.fields.Order,
+					UserStore:  &tt.fields.User,
+				},
+			}
+			got, err := s.GetOrderUsersByItem(tt.args.tx, tt.args.itemID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetOrderUsersByItem() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.GetOrderUsersByItem() = %v, want %v", got, tt.want)
 			}
 		})
 	}

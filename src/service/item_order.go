@@ -32,5 +32,6 @@ func (s *Service) CheckItemExist(tx *sql.Tx, itemID int) (bool, error) {
 }
 
 func (s *Service) GetItemByID(tx *sql.Tx, itemID int) (*models.Item, error) {
-	return s.Store.ItemStore.FindByID(tx, itemID)
+	i, _ := s.Store.ItemStore.FindByID(tx, itemID)
+	return i, nil
 }

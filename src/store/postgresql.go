@@ -57,7 +57,8 @@ var allMigrations = []*migrate.Migration{
 			token VARCHAR NOT NULL
 		);
 		CREATE TABLE people_in_charge (
-			user_id INT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
+			user_id INT NOT NULL,
 			menu_id INT NOT NULL
 		);
 		CREATE TABLE menus (

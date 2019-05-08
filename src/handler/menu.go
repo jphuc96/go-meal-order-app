@@ -8,7 +8,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"git.d.foundation/datcom/backend/models"
 	"git.d.foundation/datcom/backend/src/domain"
 )
 
@@ -21,15 +20,11 @@ func (c *CoreHandler) GetLatestMenu(g *gin.Context) {
 		return
 	}
 
-	latestMenu := &models.Menu{}
-	latestMenu, err = c.service.GetLatestMenu(tx)
-	if err != nil {
-		tx.Rollback()
-		c.HandleHTTPError(err, http.StatusInternalServerError, g.Writer)
-		return
-	}
+	latestMenu, err := c.service.GetLatestMenu(tx)
 	// if no menu today
 	if latestMenu == nil {
+		g.Writer.WriteHeader(http.StatusOK)
+		json.NewEncoder(g.Writer).Encode(menuResp)
 		return
 	}
 

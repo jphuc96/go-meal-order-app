@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -109,6 +110,176 @@ func TestService_CreateMenu(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.CreateMenu() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestService_GetLatestMenu(t *testing.T) {
+	type fields struct {
+		Menu menu.ServiceMock
+	}
+	type args struct {
+		tx *sql.Tx
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *models.Menu
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "m != nil",
+			fields: fields{
+				menu.ServiceMock{
+					GetLatestMenuFunc: func(tx *sql.Tx) (*models.Menu, error) {
+						return &models.Menu{}, nil
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "m == nil",
+			fields: fields{
+				menu.ServiceMock{
+					GetLatestMenuFunc: func(tx *sql.Tx) (*models.Menu, error) {
+						return nil, nil
+					},
+				},
+			},
+			want:    nil,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: Store{
+					MenuStore: &tt.fields.Menu,
+				},
+			}
+			got, err := s.GetLatestMenu(tt.args.tx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetLatestMenu() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.GetLatestMenu() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_GetMenuByID(t *testing.T) {
+	type fields struct {
+		Menu menu.ServiceMock
+	}
+	type args struct {
+		tx     *sql.Tx
+		menuID int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *models.Menu
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "Pass",
+			fields: fields{
+				menu.ServiceMock{
+					FindByIDFunc: func(tx *sql.Tx, menuID int) (*models.Menu, error) {
+						return &models.Menu{}, nil
+					},
+				},
+			},
+			want:    &models.Menu{},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: Store{
+					MenuStore: &tt.fields.Menu,
+				},
+			}
+			got, err := s.GetMenuByID(tt.args.tx, tt.args.menuID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetMenuByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.GetMenuByID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_UpdateMenu(t *testing.T) {
+	type fields struct {
+		Menu menu.ServiceMock
+	}
+	type args struct {
+		tx         *sql.Tx
+		updateMenu *models.Menu
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *models.Menu
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: Store{
+					MenuStore: &tt.fields.Menu,
+				},
+			}
+			got, err := s.UpdateMenu(tt.args.tx, tt.args.updateMenu)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.UpdateMenu() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.UpdateMenu() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_HandleMenuDeadline(t *testing.T) {
+	type fields struct {
+		Store Store
+	}
+	type args struct {
+		tx   *sql.Tx
+		menu *models.Menu
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: tt.fields.Store,
+			}
+			if err := s.HandleMenuDeadline(tt.args.tx, tt.args.menu); (err != nil) != tt.wantErr {
+				t.Errorf("Service.HandleMenuDeadline() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

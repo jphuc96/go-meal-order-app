@@ -23,6 +23,7 @@ import (
 
 // PeopleInCharge is an object representing the database table.
 type PeopleInCharge struct {
+	ID     int `boil:"id" json:"id" toml:"id" yaml:"id"`
 	UserID int `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	MenuID int `boil:"menu_id" json:"menu_id" toml:"menu_id" yaml:"menu_id"`
 
@@ -31,9 +32,11 @@ type PeopleInCharge struct {
 }
 
 var PeopleInChargeColumns = struct {
+	ID     string
 	UserID string
 	MenuID string
 }{
+	ID:     "id",
 	UserID: "user_id",
 	MenuID: "menu_id",
 }
@@ -41,9 +44,11 @@ var PeopleInChargeColumns = struct {
 // Generated where
 
 var PeopleInChargeWhere = struct {
+	ID     whereHelperint
 	UserID whereHelperint
 	MenuID whereHelperint
 }{
+	ID:     whereHelperint{field: `id`},
 	UserID: whereHelperint{field: `user_id`},
 	MenuID: whereHelperint{field: `menu_id`},
 }
@@ -72,10 +77,10 @@ func (*peopleInChargeR) NewStruct() *peopleInChargeR {
 type peopleInChargeL struct{}
 
 var (
-	peopleInChargeColumns               = []string{"user_id", "menu_id"}
+	peopleInChargeColumns               = []string{"id", "user_id", "menu_id"}
 	peopleInChargeColumnsWithoutDefault = []string{"user_id", "menu_id"}
-	peopleInChargeColumnsWithDefault    = []string{}
-	peopleInChargePrimaryKeyColumns     = []string{"user_id"}
+	peopleInChargeColumnsWithDefault    = []string{"id"}
+	peopleInChargePrimaryKeyColumns     = []string{"id"}
 )
 
 type (
@@ -462,7 +467,7 @@ func (peopleInChargeL) LoadUser(ctx context.Context, e boil.ContextExecutor, sin
 		if foreign.R == nil {
 			foreign.R = &userR{}
 		}
-		foreign.R.PeopleInCharge = object
+		foreign.R.PeopleInCharges = append(foreign.R.PeopleInCharges, object)
 		return nil
 	}
 
@@ -473,7 +478,7 @@ func (peopleInChargeL) LoadUser(ctx context.Context, e boil.ContextExecutor, sin
 				if foreign.R == nil {
 					foreign.R = &userR{}
 				}
-				foreign.R.PeopleInCharge = local
+				foreign.R.PeopleInCharges = append(foreign.R.PeopleInCharges, local)
 				break
 			}
 		}
@@ -585,7 +590,7 @@ func (peopleInChargeL) LoadMenu(ctx context.Context, e boil.ContextExecutor, sin
 
 // SetUser of the peopleInCharge to the related item.
 // Sets o.R.User to related.
-// Adds o to related.R.PeopleInCharge.
+// Adds o to related.R.PeopleInCharges.
 func (o *PeopleInCharge) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
 	var err error
 	if insert {
@@ -599,7 +604,7 @@ func (o *PeopleInCharge) SetUser(ctx context.Context, exec boil.ContextExecutor,
 		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
 		strmangle.WhereClause("\"", "\"", 2, peopleInChargePrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.UserID}
+	values := []interface{}{related.ID, o.ID}
 
 	if boil.DebugMode {
 		fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -621,10 +626,10 @@ func (o *PeopleInCharge) SetUser(ctx context.Context, exec boil.ContextExecutor,
 
 	if related.R == nil {
 		related.R = &userR{
-			PeopleInCharge: o,
+			PeopleInCharges: PeopleInChargeSlice{o},
 		}
 	} else {
-		related.R.PeopleInCharge = o
+		related.R.PeopleInCharges = append(related.R.PeopleInCharges, o)
 	}
 
 	return nil
@@ -646,7 +651,7 @@ func (o *PeopleInCharge) SetMenu(ctx context.Context, exec boil.ContextExecutor,
 		strmangle.SetParamNames("\"", "\"", 1, []string{"menu_id"}),
 		strmangle.WhereClause("\"", "\"", 2, peopleInChargePrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.UserID}
+	values := []interface{}{related.ID, o.ID}
 
 	if boil.DebugMode {
 		fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -685,7 +690,7 @@ func PeopleInCharges(mods ...qm.QueryMod) peopleInChargeQuery {
 
 // FindPeopleInCharge retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindPeopleInCharge(ctx context.Context, exec boil.ContextExecutor, userID int, selectCols ...string) (*PeopleInCharge, error) {
+func FindPeopleInCharge(ctx context.Context, exec boil.ContextExecutor, iD int, selectCols ...string) (*PeopleInCharge, error) {
 	peopleInChargeObj := &PeopleInCharge{}
 
 	sel := "*"
@@ -693,10 +698,10 @@ func FindPeopleInCharge(ctx context.Context, exec boil.ContextExecutor, userID i
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"people_in_charge\" where \"user_id\"=$1", sel,
+		"select %s from \"people_in_charge\" where \"id\"=$1", sel,
 	)
 
-	q := queries.Raw(query, userID)
+	q := queries.Raw(query, iD)
 
 	err := q.Bind(ctx, exec, peopleInChargeObj)
 	if err != nil {
@@ -1042,7 +1047,7 @@ func (o *PeopleInCharge) Delete(ctx context.Context, exec boil.ContextExecutor) 
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), peopleInChargePrimaryKeyMapping)
-	sql := "DELETE FROM \"people_in_charge\" WHERE \"user_id\"=$1"
+	sql := "DELETE FROM \"people_in_charge\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
 		fmt.Fprintln(boil.DebugWriter, sql)
@@ -1143,7 +1148,7 @@ func (o PeopleInChargeSlice) DeleteAll(ctx context.Context, exec boil.ContextExe
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *PeopleInCharge) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindPeopleInCharge(ctx, exec, o.UserID)
+	ret, err := FindPeopleInCharge(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -1182,16 +1187,16 @@ func (o *PeopleInChargeSlice) ReloadAll(ctx context.Context, exec boil.ContextEx
 }
 
 // PeopleInChargeExists checks if the PeopleInCharge row exists.
-func PeopleInChargeExists(ctx context.Context, exec boil.ContextExecutor, userID int) (bool, error) {
+func PeopleInChargeExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"people_in_charge\" where \"user_id\"=$1 limit 1)"
+	sql := "select exists(select 1 from \"people_in_charge\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
 		fmt.Fprintln(boil.DebugWriter, sql)
-		fmt.Fprintln(boil.DebugWriter, userID)
+		fmt.Fprintln(boil.DebugWriter, iD)
 	}
 
-	row := exec.QueryRowContext(ctx, sql, userID)
+	row := exec.QueryRowContext(ctx, sql, iD)
 
 	err := row.Scan(&exists)
 	if err != nil {

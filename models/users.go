@@ -60,20 +60,20 @@ var UserWhere = struct {
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-	PeopleInCharge string
-	OwnerMenus     string
-	Orders         string
+	OwnerMenus      string
+	Orders          string
+	PeopleInCharges string
 }{
-	PeopleInCharge: "PeopleInCharge",
-	OwnerMenus:     "OwnerMenus",
-	Orders:         "Orders",
+	OwnerMenus:      "OwnerMenus",
+	Orders:          "Orders",
+	PeopleInCharges: "PeopleInCharges",
 }
 
 // userR is where relationships are stored.
 type userR struct {
-	PeopleInCharge *PeopleInCharge
-	OwnerMenus     MenuSlice
-	Orders         OrderSlice
+	OwnerMenus      MenuSlice
+	Orders          OrderSlice
+	PeopleInCharges PeopleInChargeSlice
 }
 
 // NewStruct creates a new relationship struct
@@ -366,20 +366,6 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	return count > 0, nil
 }
 
-// PeopleInCharge pointed to by the foreign key.
-func (o *User) PeopleInCharge(mods ...qm.QueryMod) peopleInChargeQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("user_id=?", o.ID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := PeopleInCharges(queryMods...)
-	queries.SetFrom(query.Query, "\"people_in_charge\"")
-
-	return query
-}
-
 // OwnerMenus retrieves all the menu's Menus with an executor via owner_id column.
 func (o *User) OwnerMenus(mods ...qm.QueryMod) menuQuery {
 	var queryMods []qm.QueryMod
@@ -422,102 +408,25 @@ func (o *User) Orders(mods ...qm.QueryMod) orderQuery {
 	return query
 }
 
-// LoadPeopleInCharge allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-1 relationship.
-func (userL) LoadPeopleInCharge(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
-	var slice []*User
-	var object *User
-
-	if singular {
-		object = maybeUser.(*User)
-	} else {
-		slice = *maybeUser.(*[]*User)
+// PeopleInCharges retrieves all the people_in_charge's PeopleInCharges with an executor.
+func (o *User) PeopleInCharges(mods ...qm.QueryMod) peopleInChargeQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
 	}
 
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &userR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &userR{}
-			}
+	queryMods = append(queryMods,
+		qm.Where("\"people_in_charge\".\"user_id\"=?", o.ID),
+	)
 
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
+	query := PeopleInCharges(queryMods...)
+	queries.SetFrom(query.Query, "\"people_in_charge\"")
 
-			args = append(args, obj.ID)
-		}
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"people_in_charge\".*"})
 	}
 
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(qm.From(`people_in_charge`), qm.WhereIn(`user_id in ?`, args...))
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load PeopleInCharge")
-	}
-
-	var resultSlice []*PeopleInCharge
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice PeopleInCharge")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for people_in_charge")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for people_in_charge")
-	}
-
-	if len(userAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.PeopleInCharge = foreign
-		if foreign.R == nil {
-			foreign.R = &peopleInChargeR{}
-		}
-		foreign.R.User = object
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.ID == foreign.UserID {
-				local.R.PeopleInCharge = foreign
-				if foreign.R == nil {
-					foreign.R = &peopleInChargeR{}
-				}
-				foreign.R.User = local
-				break
-			}
-		}
-	}
-
-	return nil
+	return query
 }
 
 // LoadOwnerMenus allows an eager lookup of values, cached into the
@@ -710,54 +619,98 @@ func (userL) LoadOrders(ctx context.Context, e boil.ContextExecutor, singular bo
 	return nil
 }
 
-// SetPeopleInCharge of the user to the related item.
-// Sets o.R.PeopleInCharge to related.
-// Adds o to related.R.User.
-func (o *User) SetPeopleInCharge(ctx context.Context, exec boil.ContextExecutor, insert bool, related *PeopleInCharge) error {
-	var err error
+// LoadPeopleInCharges allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadPeopleInCharges(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
 
-	if insert {
-		related.UserID = o.ID
-
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
+	if singular {
+		object = maybeUser.(*User)
 	} else {
-		updateQuery := fmt.Sprintf(
-			"UPDATE \"people_in_charge\" SET %s WHERE %s",
-			strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
-			strmangle.WhereClause("\"", "\"", 2, peopleInChargePrimaryKeyColumns),
-		)
-		values := []interface{}{o.ID, related.UserID}
-
-		if boil.DebugMode {
-			fmt.Fprintln(boil.DebugWriter, updateQuery)
-			fmt.Fprintln(boil.DebugWriter, values)
-		}
-
-		if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-			return errors.Wrap(err, "failed to update foreign table")
-		}
-
-		related.UserID = o.ID
-
+		slice = *maybeUser.(*[]*User)
 	}
 
-	if o.R == nil {
-		o.R = &userR{
-			PeopleInCharge: related,
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
 		}
+		args = append(args, object.ID)
 	} else {
-		o.R.PeopleInCharge = related
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
 	}
 
-	if related.R == nil {
-		related.R = &peopleInChargeR{
-			User: o,
-		}
-	} else {
-		related.R.User = o
+	if len(args) == 0 {
+		return nil
 	}
+
+	query := NewQuery(qm.From(`people_in_charge`), qm.WhereIn(`user_id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load people_in_charge")
+	}
+
+	var resultSlice []*PeopleInCharge
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice people_in_charge")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on people_in_charge")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for people_in_charge")
+	}
+
+	if len(peopleInChargeAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.PeopleInCharges = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &peopleInChargeR{}
+			}
+			foreign.R.User = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.UserID {
+				local.R.PeopleInCharges = append(local.R.PeopleInCharges, foreign)
+				if foreign.R == nil {
+					foreign.R = &peopleInChargeR{}
+				}
+				foreign.R.User = local
+				break
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -858,6 +811,59 @@ func (o *User) AddOrders(ctx context.Context, exec boil.ContextExecutor, insert 
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &orderR{
+				User: o,
+			}
+		} else {
+			rel.R.User = o
+		}
+	}
+	return nil
+}
+
+// AddPeopleInCharges adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.PeopleInCharges.
+// Sets related.R.User appropriately.
+func (o *User) AddPeopleInCharges(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PeopleInCharge) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.UserID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"people_in_charge\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, peopleInChargePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.UserID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			PeopleInCharges: related,
+		}
+	} else {
+		o.R.PeopleInCharges = append(o.R.PeopleInCharges, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &peopleInChargeR{
 				User: o,
 			}
 		} else {

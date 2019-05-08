@@ -31,16 +31,12 @@ cloud-builds:
     - tags
   image: google/cloud-sdk:alpine
   script:
-    - echo $LETSENCRYPT_CERT > $CI_PROJECT_DIR/cert.pem
-    - echo $LETSENCRYPT_KEY > $CI_PROJECT_DIR/privkey.pem
     - echo $SERVICE_ACCOUNT > /tmp/$CI_PIPELINE_ID.json
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $PROJECT_ID
     - gcloud builds submit --tag gcr.io/$PROJECT_ID/datcom_backend $CI_PROJECT_DIR
   after_script:
     - rm /tmp/$CI_PIPELINE_ID.json
-    - rm $CI_PROJECT_DIR/cert.pem
-    - rm $CI_PROJECT_DIR/privkey.pem
 
 deploy-to-vm:
   stage: deploy-to-vm

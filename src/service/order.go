@@ -31,20 +31,13 @@ func (s *Service) DeleteOrder(tx *sql.Tx, o *domain.OrderInput) error {
 
 //GetOrdersByUserID gets items in user order by user ID
 func (s *Service) GetOrdersByMenuAndUser(menuID string, userID string) ([]*domain.Item, error) {
-	items, err := s.Store.OrderStore.Get(menuID, userID)
-	if err != nil {
-		return nil, err
-	}
-
+	items, _ := s.Store.OrderStore.Get(menuID, userID)
 	return items, nil
 }
 
 func (s *Service) GetOrderUsersByItem(tx *sql.Tx, itemID int) ([]*models.User, error) {
 	orderUser := make([]*models.User, 0)
-	orders, err := s.Store.OrderStore.GetAllOrdersByItemID(tx, itemID)
-	if err != nil {
-		return nil, err
-	}
+	orders, _ := s.Store.OrderStore.GetAllOrdersByItemID(tx, itemID)
 
 	for _, order := range orders {
 		user, err := s.Store.UserStore.GetByID(tx, order.UserID)
