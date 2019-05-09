@@ -41,7 +41,7 @@ cloud-builds:
 deploy-to-vm:
   stage: deploy-to-vm
   only:
-    - tags
+    - master
   image: google/cloud-sdk:alpine
   script:
     - echo $SERVICE_ACCOUNT > /tmp/$CI_PIPELINE_ID.json
@@ -51,7 +51,7 @@ deploy-to-vm:
     - gcloud compute instances update-container datcombackend 
       --container-image gcr.io/$PROJECT_ID/datcom_backend:latest 
       --container-restart-policy always 
-      --container-env PORT=$PORT,DB_HOST=$DB_HOST,DB_PORT=$DB_PORT,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_PASSWORD=$DB_PASSWORD,DB_SSL=$DB_SSL
+      --container-env DB_HOST=$DB_HOST,DB_PORT=$DB_PORT,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_PASSWORD=$DB_PASSWORD,DB_SSL=$DB_SSL
     - gcloud compute instances start datcombackend
   after_script:
     - rm /tmp/$CI_PIPELINE_ID.json
