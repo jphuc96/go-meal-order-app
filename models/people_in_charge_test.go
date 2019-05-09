@@ -149,7 +149,7 @@ func testPeopleInChargesExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := PeopleInChargeExists(ctx, tx, o.UserID)
+	e, err := PeopleInChargeExists(ctx, tx, o.ID)
 	if err != nil {
 		t.Errorf("Unable to check if PeopleInCharge exists: %s", err)
 	}
@@ -175,7 +175,7 @@ func testPeopleInChargesFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	peopleInChargeFound, err := FindPeopleInCharge(ctx, tx, o.UserID)
+	peopleInChargeFound, err := FindPeopleInCharge(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
@@ -634,19 +634,23 @@ func testPeopleInChargeToOneSetOpUserUsingUser(t *testing.T) {
 			t.Error("relationship struct not set to correct value")
 		}
 
-		if x.R.PeopleInCharge != &a {
+		if x.R.PeopleInCharges[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
 		if a.UserID != x.ID {
 			t.Error("foreign key was wrong value", a.UserID)
 		}
 
-		if exists, err := PeopleInChargeExists(ctx, tx, a.UserID); err != nil {
-			t.Fatal(err)
-		} else if !exists {
-			t.Error("want 'a' to exist")
+		zero := reflect.Zero(reflect.TypeOf(a.UserID))
+		reflect.Indirect(reflect.ValueOf(&a.UserID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
 		}
 
+		if a.UserID != x.ID {
+			t.Error("foreign key was wrong value", a.UserID, x.ID)
+		}
 	}
 }
 func testPeopleInChargeToOneSetOpMenuUsingMenu(t *testing.T) {
@@ -781,7 +785,7 @@ func testPeopleInChargesSelect(t *testing.T) {
 }
 
 var (
-	peopleInChargeDBTypes = map[string]string{`UserID`: `integer`, `MenuID`: `integer`}
+	peopleInChargeDBTypes = map[string]string{`ID`: `integer`, `UserID`: `integer`, `MenuID`: `integer`}
 	_                     = bytes.MinRead
 )
 

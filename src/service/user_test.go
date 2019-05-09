@@ -214,3 +214,138 @@ func TestService_CreateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestService_UpdateUserToken(t *testing.T) {
+	type fields struct {
+		User user.ServiceMock
+	}
+	type args struct {
+		tx       *sql.Tx
+		p        *domain.UserInput
+		newToken string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			fields: fields{
+				user.ServiceMock{
+					UpdateTokenFunc: func(tx *sql.Tx, p *domain.UserInput, newToken string) error {
+						return nil
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: Store{
+					UserStore: &tt.fields.User,
+				},
+			}
+			if err := s.UpdateUserToken(tt.args.tx, tt.args.p, tt.args.newToken); (err != nil) != tt.wantErr {
+				t.Errorf("Service.UpdateUserToken() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestService_GetUserByEmail(t *testing.T) {
+	type fields struct {
+		User user.ServiceMock
+	}
+	type args struct {
+		tx *sql.Tx
+		m  string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *models.User
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			fields: fields{
+				user.ServiceMock{
+					FindFunc: func(tx *sql.Tx, p *domain.UserInput) (*models.User, error) {
+						return &models.User{}, nil
+					},
+				},
+			},
+			want:    &models.User{},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: Store{
+					UserStore: &tt.fields.User,
+				},
+			}
+			got, err := s.GetUserByEmail(tt.args.tx, tt.args.m)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetUserByEmail() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.GetUserByEmail() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_GetUserByToken(t *testing.T) {
+	type fields struct {
+		User user.ServiceMock
+	}
+	type args struct {
+		tx  *sql.Tx
+		tok string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *models.User
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			fields: fields{
+				user.ServiceMock{
+					GetByTokenFunc: func(tx *sql.Tx, tok string) (*models.User, error) {
+						return &models.User{}, nil
+					},
+				},
+			},
+			want:    &models.User{},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store: Store{
+					UserStore: &tt.fields.User,
+				},
+			}
+			got, err := s.GetUserByToken(tt.args.tx, tt.args.tok)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetUserByToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.GetUserByToken() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

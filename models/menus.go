@@ -867,7 +867,7 @@ func (o *Menu) AddPeopleInCharges(ctx context.Context, exec boil.ContextExecutor
 				strmangle.SetParamNames("\"", "\"", 1, []string{"menu_id"}),
 				strmangle.WhereClause("\"", "\"", 2, peopleInChargePrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.UserID}
+			values := []interface{}{o.ID, rel.ID}
 
 			if boil.DebugMode {
 				fmt.Fprintln(boil.DebugWriter, updateQuery)

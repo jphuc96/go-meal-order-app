@@ -125,9 +125,7 @@ func TestToOne(t *testing.T) {
 
 // TestOneToOne tests cannot be run in parallel
 // or deadlocks can occur.
-func TestOneToOne(t *testing.T) {
-	t.Run("UserToPeopleInChargeUsingPeopleInCharge", testUserOneToOnePeopleInChargeUsingPeopleInCharge)
-}
+func TestOneToOne(t *testing.T) {}
 
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
@@ -137,6 +135,7 @@ func TestToMany(t *testing.T) {
 	t.Run("MenuToPeopleInCharges", testMenuToManyPeopleInCharges)
 	t.Run("UserToOwnerMenus", testUserToManyOwnerMenus)
 	t.Run("UserToOrders", testUserToManyOrders)
+	t.Run("UserToPeopleInCharges", testUserToManyPeopleInCharges)
 }
 
 // TestToOneSet tests cannot be run in parallel
@@ -146,7 +145,7 @@ func TestToOneSet(t *testing.T) {
 	t.Run("MenuToUserUsingOwnerMenus", testMenuToOneSetOpUserUsingOwner)
 	t.Run("OrderToItemUsingOrders", testOrderToOneSetOpItemUsingItem)
 	t.Run("OrderToUserUsingOrders", testOrderToOneSetOpUserUsingUser)
-	t.Run("PeopleInChargeToUserUsingPeopleInCharge", testPeopleInChargeToOneSetOpUserUsingUser)
+	t.Run("PeopleInChargeToUserUsingPeopleInCharges", testPeopleInChargeToOneSetOpUserUsingUser)
 	t.Run("PeopleInChargeToMenuUsingPeopleInCharges", testPeopleInChargeToOneSetOpMenuUsingMenu)
 }
 
@@ -156,9 +155,7 @@ func TestToOneRemove(t *testing.T) {}
 
 // TestOneToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
-func TestOneToOneSet(t *testing.T) {
-	t.Run("UserToPeopleInChargeUsingPeopleInCharge", testUserOneToOneSetOpPeopleInChargeUsingPeopleInCharge)
-}
+func TestOneToOneSet(t *testing.T) {}
 
 // TestOneToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
@@ -172,6 +169,7 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("MenuToPeopleInCharges", testMenuToManyAddOpPeopleInCharges)
 	t.Run("UserToOwnerMenus", testUserToManyAddOpOwnerMenus)
 	t.Run("UserToOrders", testUserToManyAddOpOrders)
+	t.Run("UserToPeopleInCharges", testUserToManyAddOpPeopleInCharges)
 }
 
 // TestToManySet tests cannot be run in parallel

@@ -15,11 +15,9 @@ RUN go get -d -v ./...
 RUN go install -v ./...
 
 #### Runner Stage
-FROM nginx:alpine
+FROM gcr.io/phonic-aquifer-234318/datcom_nginx
 
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY cert.pem /etc/ssl/cert.pem
-COPY privkey.pem /etc/ssl/privkey.pem
 
 WORKDIR /datcom
 

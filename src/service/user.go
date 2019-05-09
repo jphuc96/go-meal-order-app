@@ -29,18 +29,20 @@ func (s *Service) CreateUser(tx *sql.Tx, p *domain.UserInput) (*models.User, err
 }
 
 func (s *Service) GetAllUser() ([]*models.User, error) {
-	u, err := s.Store.UserStore.FindAll()
-	return u, err
+	u, _ := s.Store.UserStore.FindAll()
+	return u, nil
 }
 
 func (s *Service) GetUserByEmail(tx *sql.Tx, m string) (*models.User, error) {
-	return s.Store.UserStore.Find(tx, &domain.UserInput{
+	u, _ := s.Store.UserStore.Find(tx, &domain.UserInput{
 		Email: m,
 	})
+	return u, nil
 }
 
 func (s *Service) GetUserByToken(tx *sql.Tx, tok string) (*models.User, error) {
-	return s.Store.UserStore.GetByToken(tx, tok)
+	u, _ := s.Store.UserStore.GetByToken(tx, tok)
+	return u, nil
 }
 
 func (s *Service) UpdateUserToken(tx *sql.Tx, p *domain.UserInput, newToken string) error {

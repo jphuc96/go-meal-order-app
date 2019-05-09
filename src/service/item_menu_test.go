@@ -205,3 +205,131 @@ func TestService_AddItems(t *testing.T) {
 		})
 	}
 }
+
+func TestService_GetAllItemsByMenuID(t *testing.T) {
+	type fields struct {
+		Item item.ServiceMock
+	}
+	type args struct {
+		tx     *sql.Tx
+		menuID int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []*models.Item
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "Passed",
+			fields: fields{
+				item.ServiceMock{
+					GetAllItemsByMenuIDFunc: func(tx *sql.Tx, menuID int) ([]*models.Item, error) {
+						return []*models.Item{}, nil
+					},
+				},
+			},
+			want:    []*models.Item{},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store{
+					ItemStore: &tt.fields.Item,
+				},
+			}
+			got, err := s.GetAllItemsByMenuID(tt.args.tx, tt.args.menuID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetAllItemsByMenuID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.GetAllItemsByMenuID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_AddItemToMenu(t *testing.T) {
+	type fields struct {
+		Item item.ServiceMock
+		Menu menu.ServiceMock
+	}
+	type args struct {
+		tx       *sql.Tx
+		itemName string
+		menuID   int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *models.Item
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "MenuNotExist",
+			fields: fields{
+				item.ServiceMock{},
+				menu.ServiceMock{
+					CheckMenuExistFunc: func(tx *sql.Tx, menuID int) (bool, error) {
+						return false, nil
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Error",
+			fields: fields{
+				item.ServiceMock{},
+				menu.ServiceMock{
+					CheckMenuExistFunc: func(tx *sql.Tx, menuID int) (bool, error) {
+						return false, errors.New("error")
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Passed",
+			fields: fields{
+				item.ServiceMock{
+					AddFunc: func(tx *sql.Tx, i *domain.Item) (*models.Item, error) {
+						return &models.Item{}, nil
+					},
+				},
+				menu.ServiceMock{
+					CheckMenuExistFunc: func(tx *sql.Tx, menuID int) (bool, error) {
+						return true, nil
+					},
+				},
+			},
+			want:    &models.Item{},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{
+				Store{
+					ItemStore: &tt.fields.Item,
+					MenuStore: &tt.fields.Menu,
+				},
+			}
+			got, err := s.AddItemToMenu(tt.args.tx, tt.args.itemName, tt.args.menuID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.AddItemToMenu() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.AddItemToMenu() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
