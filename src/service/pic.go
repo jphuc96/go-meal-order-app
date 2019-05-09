@@ -81,6 +81,7 @@ func (s *Service) GeneratePIC(tx *sql.Tx, menuID int) ([]domain.PICUser, error) 
 	picLen := int(math.Ceil(float64(orderCount) / 8))
 
 	picUsers := make([]domain.PICUser, 0)
+	picUsers = nil
 	users, err := s.GetAllOrderUserOfMenu(tx, menuID)
 	if err != nil {
 		return nil, err
