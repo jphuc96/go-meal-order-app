@@ -1,0 +1,57 @@
+image: golang:1.12
+
+stages:
+  - test
+  - build
+  - cloud-builds
+  - deploy-to-vm
+  
+cache:
+  paths:
+    - .cache
+
+before_script:
+  - export GOPATH="$CI_PROJECT_DIR/.cache"
+
+test:
+  stage: test
+  script:
+    - make test
+
+build:
+  stage: build
+  script:
+    - make build
+  except:
+    - tags
+
+cloud-builds:
+  stage: cloud-builds
+  only:
+    - tags
+  image: google/cloud-sdk:alpine
+  script:
+    - echo $SERVICE_ACCOUNT > /tmp/$CI_PIPELINE_ID.json
+    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+    - gcloud config set project $PROJECT_ID
+    - gcloud builds submit --tag gcr.io/$PROJECT_ID/datcom_backend $CI_PROJECT_DIR
+  after_script:
+    - rm /tmp/$CI_PIPELINE_ID.json
+
+deploy-to-vm:
+  stage: deploy-to-vm
+  only:
+    - master
+  image: google/cloud-sdk:alpine
+  script:
+    - echo $SERVICE_ACCOUNT > /tmp/$CI_PIPELINE_ID.json
+    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+    - gcloud config set project $PROJECT_ID
+    - gcloud config set compute/zone us-central1-a
+    - gcloud compute instances update-container datcombackend 
+      --container-image gcr.io/$PROJECT_ID/datcom_backend:latest 
+      --container-restart-policy always 
+      --container-env DB_HOST=$DB_HOST,DB_PORT=$DB_PORT,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_PASSWORD=$DB_PASSWORD,DB_SSL=$DB_SSL
+    - gcloud compute instances start datcombackend
+  after_script:
+    - rm /tmp/$CI_PIPELINE_ID.json

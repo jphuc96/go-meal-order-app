@@ -2,6 +2,9 @@
 # Created by https://www.gitignore.io/api/go,linux
 # Edit at https://www.gitignore.io/?templates=go,linux
 
+### SERVER INFO ###
+sqlboiler.toml
+
 ### Go ###
 # Binaries for programs and plugins
 *.exe
@@ -9,6 +12,7 @@
 *.dll
 *.so
 *.dylib
+/bin
 
 # Test binary, built with `go test -c`
 *.test
@@ -37,3 +41,19 @@
 
 # End of https://www.gitignore.io/api/go,linux
 
+.idea/
+
+# VSCode config folder
+.vscode/
+
+# Code coverage
+coverage.out
+coverage.html
+
+# Docker environment, need to be kept locally
+db-local.env
+db-heroku.env
+config.env
+docker.env
+docker-heroku.env
+gcp-heroku.env
