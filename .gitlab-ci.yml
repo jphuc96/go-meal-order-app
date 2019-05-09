@@ -29,6 +29,7 @@ cloud-builds:
   stage: cloud-builds
   only:
     - tags
+    - master
   image: google/cloud-sdk:alpine
   script:
     - echo $SERVICE_ACCOUNT > /tmp/$CI_PIPELINE_ID.json
