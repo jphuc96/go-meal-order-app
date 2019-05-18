@@ -83,12 +83,12 @@ func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
 		return
 	}
 	// if user is new, check with Fortress before decide to create user or not
-	ftUser := &domain.FTResp{}
-	ftUser, err = c.service.FortressVerify(googleUser.Email)
-	if err != nil {
-		c.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
-		return
-	}
+	// ftUser := &domain.FTResp{}
+	// ftUser, err = c.service.FortressVerify(googleUser.Email)
+	// if err != nil {
+	// 	c.HandleHTTPError(err, http.StatusUnauthorized, g.Writer)
+	// 	return
+	// }
 
 	tx, err = c.db.BeginTx(context.Background(), nil)
 	if err != nil {
@@ -97,8 +97,8 @@ func (c *CoreHandler) GoogleOauthCallback(g *gin.Context) {
 	}
 
 	dbUser, err = c.service.CreateUser(tx, &domain.UserInput{
-		Name:  ftUser.Name,
-		Email: ftUser.Email,
+		Name:  googleUser.Name,
+		Email: googleUser.Email,
 		Token: c.service.RandToken(),
 	})
 	if err != nil {

@@ -12,6 +12,7 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/gorilla/mux v1.7.1
 	github.com/gorilla/sessions v1.1.3
+	github.com/graphql-go/graphql v0.7.8 // indirect
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/kat-co/vala v0.0.0-20170210184112-42e1d8b61f12
