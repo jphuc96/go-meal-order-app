@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 
@@ -28,6 +29,17 @@ type DBConfig struct {
 	SSLMode  string
 }
 
+var pgSingleton *sql.DB
+var once sync.Once
+
+func GetPGInstance(connString string) (*sql.DB, error) {
+	var err error
+	once.Do(func() {
+		pgSingleton, err = sql.Open("postgres", connString)
+	})
+	return pgSingleton, err
+}
+
 func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 
 	connString := "host=" + dbConfig.Host +
@@ -37,7 +49,7 @@ func (a *App) NewApp(dbConfig *DBConfig) (*App, error) {
 		" dbname=" + dbConfig.DBName +
 		" sslmode=" + dbConfig.SSLMode
 
-	db, err := sql.Open("postgres", connString)
+	db, err := GetPGInstance(connString)
 	if err != nil {
 		return nil, errors.New("could not connect to database")
 	}
